@@ -38,10 +38,10 @@ class ASCIIViewer(viewer.PokerViewer):
     )
 
     def __init__(
-        self, num_players: int, num_hole_cards: int, num_community_cards: int
+        self, num_players: int, num_hole_cards: int, num_community_cards: int, **kwargs
     ) -> None:
         super(ASCIIViewer, self).__init__(
-            num_players, num_hole_cards, num_community_cards
+            num_players, num_hole_cards, num_community_cards, **kwargs
         )
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -64,7 +64,7 @@ class ASCIIViewer(viewer.PokerViewer):
                     'all_in': List[bool] - list of all in players,
                     'community_cards': List[Card] - list of community
                                        cards,
-                    'dealer': int - position of dealer,
+                    'button': int - position of button,
                     'done': bool - list of done players,
                     'hole_cards': List[List[Card]] - list of hole cards,
                     'pot': int - chips in pot,
@@ -85,7 +85,7 @@ class ASCIIViewer(viewer.PokerViewer):
         """
 
         action = config["action"]
-        dealer = config["dealer"]
+        button = config["button"]
         done = config["done"]
         positions = ["p{}".format(idx) for idx in self.player_pos]
 
@@ -107,8 +107,8 @@ class ASCIIViewer(viewer.PokerViewer):
         else:
             str_config["pot"] = "0"
 
-        # dealer + player positions
-        str_config["b{}".format(self.player_pos[dealer])] = "D "
+        # button + player positions
+        str_config["b{}".format(self.player_pos[button])] = "D "
         iterables = [players, config["street_commits"], positions, config["all_in"]]
         for player, street_commit, pos, all_in in zip(*iterables):
             str_config[pos] = player
@@ -204,7 +204,7 @@ class ASCIIViewer(viewer.PokerViewer):
                     'all_in': List[bool] - list of all in players,
                     'community_cards': List[Card] - list of community
                                        cards,
-                    'dealer': int - position of dealer,
+                    'button': int - position of button,
                     'done': bool - list of done players,
                     'hole_cards': List[List[Card]] - list of hole cards,
                     'pot': int - chips in pot,

@@ -1,0 +1,5 @@
+<svg class="card" width="50" height="70">
+  <rect height="100%" width="100%" class="card-background" rx="5" ry="5" fill="url(#card-back)" />
+  <text x="7" y="25" font-size="25" font-family="Arial Black" class="card-text">
+  </text>
+</svg>

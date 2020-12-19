@@ -1,0 +1,37 @@
+<g>
+  <pattern class="dealer" id="dealer" width="25" height="25" patternUnits="userSpaceOnUse">
+    <circle cx="12.5" cy="12.5" r="12.5" fill="#ffffff" />
+    <text x="12.5" y="12.5" text-anchor="middle" stroke="#000000" font-size="12.5">
+      D
+    </text>
+  </pattern>
+  <pattern class="card-back" id="card-back" width="50" height="70" patternUnits="userSpaceOnUse">
+    <rect width="50" height="70" stroke-width="5" />
+    <line x1="0" x2="50" y1="70" y2="0" stroke-width="10" />
+  </pattern>
+  <pattern class="card-blank" id="card-blank" width="50" height="70" patternUnits="userSpaceOnUse">
+    <rect x="2" y="2" width="46" height="66" rx="5" ry="5" stroke-width="2" stroke="#ffffff" fill="transparent" />
+  </pattern>
+  <pattern class="card-front" id="card-club" width="50" height="70" patternUnits="userSpaceOnUse">
+    <rect width="100%" height="100%" />
+    <path
+      d="M 34 54 C 34 55 37 58 37 60 Q 37 61 36 61 L 28 61 Q 27 61 27 60 C 27 58 30 55 30 54 A 5.1 5.1 0 1 1 27 45 A 5.1 5.1 0 1 1 37 45 A 5.1 5.1 0 1 1 34 54 z"
+      fill="black" />
+  </pattern>
+  <pattern class="card-front" id="card-spade" width="50" height="70" patternUnits="userSpaceOnUse">
+    <rect width="100%" height="100%" />
+    <path
+      d="M 34 54 C 34 55 37 58 37 60 Q 37 61 36 61 L 28 61 Q 27 61 27 60 C 27 58 30 55 30 54 A 4.6 4.6 0 1 1 23 47 L 31 39.5 Q 32 38.5 33 39.5 L 41 47 A 4.6 4.6 0 1 1 34 54 z"
+      fill="black" />
+  </pattern>
+  <pattern class="card-front" id="card-diamond" width="50" height="70" patternUnits="userSpaceOnUse">
+    <rect width="100%" height="100%" />
+    <path
+      d="M 31 40 Q 32 39 33 40 L 41.5 49 Q 42.5 50 41.5 51 L 33 60 Q 32 61 31 60 L 22.5 51 Q 21.5 50 22.5 49 L 31 40 z"
+      fill="red" />
+  </pattern>
+  <pattern class="card-front" id="card-heart" width="50" height="70" patternUnits="userSpaceOnUse">
+    <rect width="100%" height="100%" />
+    <path d="M 41.5 48 L 33 60 Q 32 62 31 60 L 22.5 48 A 1 1 0 0 1 32 41.5 A 1 1 0 0 1 41.5 48 z" fill="red" />
+  </pattern>
+</g>

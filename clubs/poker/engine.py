@@ -383,7 +383,7 @@ class Dealer:
         active = self.active
         all_in = self.active * (self.stacks == 0)
         community_cards = self.community_cards
-        dealer = self.button
+        button = self.button
         done = all(self.__done())
         hole_cards = self.hole_cards
         pot = self.pot
@@ -396,7 +396,7 @@ class Dealer:
             "active": active,
             "all_in": all_in,
             "community_cards": community_cards,
-            "dealer": dealer,
+            "button": button,
             "done": done,
             "hole_cards": hole_cards,
             "pot": pot,
@@ -408,7 +408,7 @@ class Dealer:
 
         return config
 
-    def render(self, mode: str = "ascii", **kwargs):
+    def render(self, mode: str = "human", **kwargs):
         """Renders poker table. Render mode options are: ascii,
         asciimatics
 
@@ -418,24 +418,24 @@ class Dealer:
             toggle for using different renderer, by default 'ascii'
         """
         viewer: Optional[Type[render.PokerViewer]] = None
+        render_modes = ["ascii", "asciimatics", "human"]
         if self.viewer is None:
             if mode == "ascii":
                 viewer = render.ASCIIViewer
             elif mode == "asciimatics":
                 viewer = render.AsciimaticsViewer
-
-        if viewer is None:
-            render_modes = ", ".join(["ascii", "asciimatics"])
-            raise error.InvalidRenderModeError(
-                (f"incorrect render mode {mode}," f"use one of[{render_modes}]")
+            elif mode == "human":
+                viewer = render.GraphicViewer
+            else:
+                raise error.InvalidRenderModeError(
+                    (f"incorrect render mode {mode}," f"use one of {render_modes}")
+                )
+            self.viewer = viewer(
+                self.num_players,
+                self.num_hole_cards,
+                sum(self.num_community_cards),
+                **kwargs,
             )
-
-        self.viewer = viewer(
-            self.num_players,
-            self.num_hole_cards,
-            sum(self.num_community_cards),
-            **kwargs,
-        )
 
         config = self._render_config()
 

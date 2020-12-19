@@ -22,7 +22,7 @@ def test_render():
 
     stdout = io.StringIO()
     with redirect_stdout(stdout):
-        dealer.render()
+        dealer.render("ascii")
     string = stdout.getvalue()
 
     action_string = "Action on Player 5"

@@ -18,7 +18,7 @@ def test_render():
         "active": [1, 1],
         "all_in": [0, 0],
         "community_cards": [],
-        "dealer": 0,
+        "button": 0,
         "done": 0,
         "hole_cards": [["Ah", "Ad"], ["Ks", "Kd"]],
         "pot": 20,
