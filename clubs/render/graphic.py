@@ -4,13 +4,12 @@ import multiprocessing
 import os
 import time
 from multiprocessing import connection
-from typing import Any, Dict, List, Optional, Tuple, Union, overload
-from xml.etree import ElementTree
+from typing import Any, Dict, List, Optional, Tuple, Union
+from xml.etree import ElementTree as et
 
 import numpy as np
 
-from .. import error
-from .. import poker
+from .. import error, poker
 from . import viewer
 
 
@@ -41,9 +40,8 @@ class GraphicViewer(viewer.PokerViewer):
         from gevent import monkey
 
         monkey.patch_all()
-        import flask_socketio
-
         import flask
+        import flask_socketio
 
         config = {}
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -173,7 +171,7 @@ def jsonify(config: Union[Dict[str, Any]]) -> Dict[str, Any]:
     return _config
 
 
-class _RoundedRectangle:
+class RoundedRectangle:
     def __init__(self, x: float, y: float, width: float, height: float) -> None:
         self.x = x
         self.y = y
@@ -242,20 +240,20 @@ class SVGElement:
         os.path.dirname(os.path.realpath(__file__)), "resources", "static", "images"
     )
 
-    def __init__(self, name: str, svg: Optional[ElementTree.Element] = None) -> None:
+    def __init__(self, name: str, svg: Optional[et.Element] = None) -> None:
         if svg is None:
             svg_path = os.path.join(self.SVGS_PATH, f"{name}.svg")
             if not os.path.exists:
                 raise FileNotFoundError(f"SVG {name}.svg does not exist")
             with open(svg_path, "r") as file:
                 svg_str = file.read()
-            self.svg = ElementTree.fromstring(svg_str)
+            self.svg = et.fromstring(svg_str)
         else:
             self.svg = svg
         self.name = name
 
     def __str__(self) -> str:
-        string = ElementTree.tostring(self.svg, encoding="utf8", method="xml")
+        string = et.tostring(self.svg, encoding="utf8", method="xml")
         string = string.decode("utf8")
         return string
 
@@ -447,7 +445,14 @@ class SVGElement:
         self.center_y(other, y)
         return self
 
-    def append(self, other: Union["SVGElement", ElementTree.Element]) -> "SVGElement":
+    def extend(
+        self, other: Union[List["SVGElement"], List[et.Element]]
+    ) -> "SVGElement":
+        for element in other:
+            self.append(element)
+        return self
+
+    def append(self, other: Union["SVGElement", et.Element]) -> "SVGElement":
         if isinstance(other, SVGElement):
             other = other.svg
         self.svg.append(other)
@@ -479,85 +484,29 @@ class SVGTable:
         table.center(other=base)
         base.append(table)
 
-        player_rectangle = _RoundedRectangle(
-            table.x, table.y, table.width, table.height
-        )
+        player_rectangle = RoundedRectangle(table.x, table.y, table.width, table.height)
         player_rectangle.width += 100
         player_rectangle.height += 60
-        button_rectangle = _RoundedRectangle(
-            table.x, table.y, table.width, table.height
-        )
+        button_rectangle = RoundedRectangle(table.x, table.y, table.width, table.height)
         button_rectangle.width -= 200
         button_rectangle.height -= 160
 
-        player.width = max(
-            0 if player.width is None else player.width,
-            card.width * self.num_hole_cards + 20,
-        )
-
-        player_background = player.get_sub_svg("player-background", attr_name="class")
-        player_background.width = player.width - 10
-        player_background.height = player_background.height - 10
-
-        cards = player.get_sub_svg("cards", attr_name="class")
-        cards.width = self.num_hole_cards * card.width
-        cards.center_x(player)
-
-        card_background = card.get_sub_svg("card-background", attr_name="class")
-        card_background.set_svg_attr("fill", "url(#card-back)")
-
-        chips = player.get_sub_svg("chips", attr_name="class")
-        chips.width = player.width - 20
-        chips.center_x(player)
-
-        for player_idx in range(self.num_players):
-            x, y = player_rectangle.edge(player_idx / (self.num_players))
-            new_player = self._new_player(
-                player, f"player-{player_idx}", card, self.num_hole_cards
-            )
-            new_player.center(x=x, y=y)
-            base.append(new_player)
-            x, y = button_rectangle.edge(player_idx / (self.num_players))
-            new_button = copy.deepcopy(button)
-            new_button.id = f"button-{player_idx}"
-            new_button.center(x=x, y=y)
-            base.append(new_button)
-
-        player.width = card.width * (self.num_community_cards + 1) + 20
-
-        player_background = player.get_sub_svg("player-background", "class")
-        player.remove(player_background)
-
-        cards = player.get_sub_svg("cards", "class")
-        cards.width = player.width
-        cards.center_x(player)
-
-        card_background = card.get_sub_svg("card-background", "class")
-        card_background.set_svg_attr("fill", "url(#card-blank)")
-
-        chips = player.get_sub_svg("chips", "class")
-        chips.width = player.width - 60
-        chips.center_x(player)
-        chips.set_svg_attr("id", "pot")
-        chips.get_sub_svg("chips-text", "class").set_svg_attr("id", "pot-text")
-
-        community = self._new_player(
-            player, "community", card, self.num_community_cards + 1
-        )
-        community.set_svg_attr("class", "community")
+        players = self.add_players(player, card, player_rectangle)
+        buttons = self.add_buttons(button, button_rectangle)
+        community = self.add_community(player, card)
         community.center(other=table)
-        card_0 = community.get_sub_svg("card-community-0", "id")
-        card_0.get_sub_svg("card-background", "class").set_svg_attr(
-            "fill", "url(#card-back)"
-        )
-        card_0.x -= 10
         community.x += table.x
         community.y += table.y - 40
+
+        base.extend(players)
+        base.extend(buttons)
         base.append(community)
+
         return base
 
-    def _new_player(
-        self, player: SVGElement, label: str, card: SVGElement, num_cards: int
+    @staticmethod
+    def new_player(
+        player: SVGElement, label: str, card: SVGElement, num_cards: int
     ) -> SVGElement:
         new_player = copy.deepcopy(player)
         new_player.id = label
@@ -565,15 +514,108 @@ class SVGTable:
         if card_width is None:
             card_width = 0
         cards = new_player.get_sub_svg("cards", "class")
-        if cards is not None:
-            for card_idx in range(num_cards):
-                new_card = copy.deepcopy(card)
-                new_card.center_x(cards)
-                offset = (-card_width * num_cards / 2) + card_width * (card_idx + 0.5)
-                new_card.x += offset
-                new_card.id = f"card-{label}-{card_idx}"
-                cards.append(new_card)
+        cards.id = f"cards-{label}"
+
+        player_background = new_player.get_sub_svg("player-background", "class")
+        player_background.id = f"player-background-{label}"
+        chips = new_player.get_sub_svg("chips", "class")
+        chips.id = f"chips-{label}"
+        chips_background = chips.get_sub_svg("chips-background", "class")
+        chips_background.id = f"chips-background-{label}"
+        chips_text = chips.get_sub_svg("chips-text", "class")
+        chips_text.id = f"chips-text-{label}"
+        for card_idx in range(num_cards):
+            new_card = copy.deepcopy(card)
+            new_card.center_x(cards)
+            offset = (-card_width * num_cards / 2) + card_width * (card_idx + 0.5)
+            new_card.x += offset
+            new_card.id = f"card-{label}-{card_idx}"
+            card_background = card.get_sub_svg("card-background", "class")
+            card_background.id = f"card-background-{label}-{card_idx}"
+            card_text = card.get_sub_svg("card-text", "class")
+            card_text.id = f"card-text-{label}-{card_idx}"
+            cards.append(new_card)
         return new_player
+
+    def add_players(
+        self, player: SVGElement, card: SVGElement, player_rectangle: RoundedRectangle
+    ) -> List[SVGElement]:
+        players = []
+        player = copy.deepcopy(player)
+        card = copy.deepcopy(card)
+        player.width = max(
+            0 if player.width is None else player.width,
+            card.width * self.num_hole_cards + 20,
+        )
+
+        player_background = player.get_sub_svg("player-background", "class")
+        player_background.width = player.width - 10
+        player_background.height = player_background.height - 10
+
+        cards = player.get_sub_svg("cards", "class")
+        cards.width = self.num_hole_cards * card.width
+        cards.center_x(player)
+
+        card_background = card.get_sub_svg("card-background", "class")
+        card_background.set_svg_attr("fill", "url(#card-back)")
+
+        chips = player.get_sub_svg("chips", "class")
+        chips.width = player.width - 20
+        chips.center_x(player)
+
+        for player_idx in range(self.num_players):
+            x, y = player_rectangle.edge(player_idx / (self.num_players))
+            new_player = self.new_player(
+                player, f"player-{player_idx}", card, self.num_hole_cards
+            )
+            new_player.center(x=round(x), y=round(y))
+            players.append(new_player)
+        return players
+
+    def add_buttons(
+        self, button: SVGElement, button_rectangle: RoundedRectangle
+    ) -> List[SVGElement]:
+        buttons = []
+        for player_idx in range(self.num_players):
+            x, y = button_rectangle.edge(player_idx / (self.num_players))
+            new_button = copy.deepcopy(button)
+            new_button.id = f"button-{player_idx}"
+            new_button.center(x=round(x), y=round(y))
+            buttons.append(new_button)
+        return buttons
+
+    def add_community(self, player: SVGElement, card: SVGElement) -> SVGElement:
+        community = copy.deepcopy(player)
+        card = copy.deepcopy(card)
+
+        community.width = card.width * (self.num_community_cards + 1) + 20
+        cards = community.get_sub_svg("cards", "class")
+        cards.width = community.width
+        card_background = card.get_sub_svg("card-background", "class")
+        card_background.set_svg_attr("fill", "url(#card-blank)")
+        cards.center_x(community)
+
+        community = self.new_player(
+            community, "community", card, self.num_community_cards + 1
+        )
+
+        community_background = community.get_sub_svg("player-background", "class")
+        community.remove(community_background)
+
+        chips = community.get_sub_svg("chips", "class")
+        chips.width = community.width - 60
+        chips.center_x(community)
+        chips.id = "pot"
+        chips.get_sub_svg("chips-background", "class").id = "pot-background"
+        chips.get_sub_svg("chips-text", "class").id = "pot-text"
+
+        community.set_svg_attr("class", "community")
+        card_0 = community.get_sub_svg("card-community-0", "id")
+        card_0.get_sub_svg("card-background", "class").set_svg_attr(
+            "fill", "url(#card-back)"
+        )
+        card_0.x -= 10
+        return community
 
     def generate(self):
         return self.base_svg
