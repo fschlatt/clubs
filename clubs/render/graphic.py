@@ -242,42 +242,6 @@ class SVGElement:
             self.svg = svg
         self.name = name
 
-    @overload
-    def __getitem__(self, args: slice) -> List["SVGElement"]:
-        ...
-
-    @overload
-    def __getitem__(self, args: Union[str, Tuple[str, ...]]) -> "SVGElement":
-        ...
-
-    def __getitem__(
-        self, args: Union[str, Tuple[str, ...], slice]
-    ) -> Union["SVGElement", List["SVGElement"]]:
-        attr_name = ""
-        find_all = False
-        if isinstance(args, str):
-            name = args
-        elif isinstance(args, slice):
-            name = args.start
-            find_all = True
-        else:
-            name = args[0]
-            if len(args) > 1:
-                attr_name = args[1]
-        if attr_name:
-            xpath = f".//*[@{attr_name}='{name}']"
-        else:
-            xpath = f".//{name}"
-        if find_all:
-            svgs = self.svg.findall(xpath)
-            if not svgs:
-                raise KeyError(f"unable to find sub svg with arguments {args}")
-            return [SVGElement(name, svg) for svg in svgs]
-        svg = self.svg.find(xpath)
-        if svg is None:
-            raise KeyError(f"unable to find sub svg with arguments {args}")
-        return SVGElement(name, svg)
-
     def __str__(self) -> str:
         string = ElementTree.tostring(self.svg, encoding="utf8", method="xml")
         string = string.decode("utf8")
@@ -285,6 +249,28 @@ class SVGElement:
 
     def __repr__(self) -> str:
         return f"SVGElement<name={self.name}, id={id(self)}>"
+
+    def get_sub_svg(self, name: str, attr_name: Optional[str] = None) -> "SVGElement":
+        if attr_name is not None:
+            xpath = f".//*[@{attr_name}='{name}']"
+        else:
+            xpath = f".//{name}"
+        svg = self.svg.find(xpath)
+        if svg is None:
+            raise KeyError(f"unable to find sub svg with arguments {name}")
+        return SVGElement(name, svg)
+
+    def get_sub_svgs(
+        self, name: str, attr_name: Optional[str] = None
+    ) -> List["SVGElement"]:
+        if attr_name is not None:
+            xpath = f".//*[@{attr_name}='{name}']"
+        else:
+            xpath = f".//{name}"
+        svgs = self.svg.findall(xpath)
+        if not svgs:
+            raise KeyError(f"unable to find sub svg with arguments {name}")
+        return [SVGElement(name, svg) for svg in svgs]
 
     def get_svg_attr(self, tag_name: str) -> Optional[str]:
         return self.svg.get(tag_name, None)
@@ -475,7 +461,7 @@ class SVGTable:
         player = SVGElement("player")
         card = SVGElement("card")
         button = SVGElement("button")
-        for pattern in SVGElement("patterns")["pattern":]:
+        for pattern in SVGElement("patterns").get_sub_svgs("pattern"):
             base.append(pattern)
 
         table.center(other=base)
@@ -497,18 +483,18 @@ class SVGTable:
             card.width * self.num_hole_cards + 20,
         )
 
-        player_background = player["player-background", "class"]
+        player_background = player.get_sub_svg("player-background", attr_name="class")
         player_background.width = player.width - 10
         player_background.height = player_background.height - 10
 
-        cards = player["cards", "class"]
+        cards = player.get_sub_svg("cards", attr_name="class")
         cards.width = self.num_hole_cards * card.width
         cards.center_x(player)
 
-        card_background = card["card-background", "class"]
+        card_background = card.get_sub_svg("card-background", attr_name="class")
         card_background.set_svg_attr("fill", "url(#card-back)")
 
-        chips = player["chips", "class"]
+        chips = player.get_sub_svg("chips", attr_name="class")
         chips.width = player.width - 20
         chips.center_x(player)
 
@@ -527,29 +513,31 @@ class SVGTable:
 
         player.width = card.width * (self.num_community_cards + 1) + 20
 
-        player_background = player["player-background", "class"]
+        player_background = player.get_sub_svg("player-background", "class")
         player.remove(player_background)
 
-        cards = player["cards", "class"]
+        cards = player.get_sub_svg("cards", "class")
         cards.width = player.width
         cards.center_x(player)
 
-        card_background = card["card-background", "class"]
+        card_background = card.get_sub_svg("card-background", "class")
         card_background.set_svg_attr("fill", "url(#card-blank)")
 
-        chips = player["chips", "class"]
+        chips = player.get_sub_svg("chips", "class")
         chips.width = player.width - 60
         chips.center_x(player)
         chips.set_svg_attr("id", "pot")
-        chips["chips-text", "class"].set_svg_attr("id", "pot-text")
+        chips.get_sub_svg("chips-text", "class").set_svg_attr("id", "pot-text")
 
         community = self._new_player(
             player, "community", card, self.num_community_cards + 1
         )
         community.set_svg_attr("class", "community")
         community.center(other=table)
-        card_0 = community["card-community-0", "id"]
-        card_0["card-background", "class"].set_svg_attr("fill", "url(#card-back)")
+        card_0 = community.get_sub_svg("card-community-0", "id")
+        card_0.get_sub_svg("card-background", "class").set_svg_attr(
+            "fill", "url(#card-back)"
+        )
         card_0.x -= 10
         community.x += table.x
         community.y += table.y - 40
