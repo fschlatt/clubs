@@ -379,14 +379,14 @@ class Dealer:
         return observation, payouts, done
 
     def _render_config(self):
-        action = self.action
+        action = int(self.action)
         active = self.active
         all_in = self.active * (self.stacks == 0)
         community_cards = self.community_cards
-        button = self.button
+        button = int(self.button)
         done = all(self.__done())
         hole_cards = self.hole_cards
-        pot = self.pot
+        pot = int(self.pot)
         payouts = self.__payouts()
         street_commits = self.street_commits
         stacks = self.stacks
