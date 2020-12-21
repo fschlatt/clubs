@@ -116,6 +116,7 @@ class GraphicViewer(viewer.PokerViewer):
                 break
             try:
                 self.socket = connection.Client(("localhost", self.port + 1))
+                print(f"clubs table openend at http://127.0.0.1:{self.port}")
             except ConnectionRefusedError:
                 tries += 1
                 if tries == 5:
