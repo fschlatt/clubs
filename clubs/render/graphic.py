@@ -552,7 +552,7 @@ class SVGTable:
         card_width = card.width
         if card_width is None:
             card_width = 0
-        cards = new_player["cards", "class"]
+        cards = new_player.get_sub_svg("cards", "class")
         if cards is not None:
             for card_idx in range(num_cards):
                 new_card = copy.deepcopy(card)
