@@ -140,6 +140,14 @@ def convert_hands(hands: List[List[poker.Card]]) -> List[List[str]]:
 
 
 def jsonify(config: Union[Dict[str, Any]]) -> Dict[str, Any]:
+    def to_number(value: Any) -> Union[float, int]:
+        try:
+            return int(value)
+        except ValueError:
+            pass
+        value = float(value)
+        return value
+
     _config: Dict[str, Any] = {}
     for key, value in config.items():
         if isinstance(value, dict):
@@ -155,10 +163,13 @@ def jsonify(config: Union[Dict[str, Any]]) -> Dict[str, Any]:
                 _config[key] = cards[0]
             else:
                 _config[key] = cards
-        elif isinstance(value, float):
-            _config[key] = float(value)
-        elif isinstance(value, int):
-            _config[key] = int(value)
+        elif value is None:
+            _config[key] = value
+        else:
+            try:
+                _config[key] = to_number(value)
+            except ValueError:
+                pass
     return _config
 
 
