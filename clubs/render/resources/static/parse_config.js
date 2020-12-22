@@ -97,9 +97,9 @@
   }
 
   function update_street_commit(config) {
-    for (let player_idx = 0; player_idx < config["street_commit"].length; player_idx++) {
-      let street_commit = config["street_commit"][player_idx];
-      document.getElementById(`street-commit-text-${player_id}`).innerHTML = street_commit;
+    for (let player_idx = 0; player_idx < config["street_commits"].length; player_idx++) {
+      let street_commit = config["street_commits"][player_idx];
+      document.getElementById(`street-commit-text-${player_idx}`).innerHTML = street_commit;
     }
   }
 
@@ -112,6 +112,7 @@
       update_cards(config);
       update_button(config);
       update_pot(config);
+      update_street_commit(config);
     }
   })
 })()
