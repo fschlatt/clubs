@@ -1,7 +1,7 @@
 <pattern id="diamond" class="card-background" x="0" y="0" width="50" height="70" patternUnits="userSpaceOnUse">
-    <path
-        d="M 31 40 Q 32 39 33 40 L 41.5 49 Q 42.5 50 41.5 51 L 33 60 Q 32 61 31 60 L 22.5 51 Q 21.5 50 22.5 49 L 31 40 z"
-        fill="red" stroke="red" />
-    <circle cx="32" cy="50" r="1.5" fill="blue" />
-    <rect width="23" height="24" x="20.5" y="38" fill="transparent" stroke="blue" stroke-width="2" />
+  <path
+    d="M 31 40 Q 32 39 33 40 L 41.5 49 Q 42.5 50 41.5 51 L 33 60 Q 32 61 31 60 L 22.5 51 Q 21.5 50 22.5 49 L 31 40 z"
+    fill="red" stroke="red" />
+  <circle cx="32" cy="50" r="1.5" fill="blue" />
+  <rect width="23" height="24" x="20.5" y="38" fill="transparent" stroke="blue" stroke-width="2" />
 </pattern>

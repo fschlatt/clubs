@@ -1,9 +1,9 @@
 <svg class="chips" height="30" width="100">
-    <rect width="100%" height="100%" ry="5" rx="5" class="chips-background" />
-    <text x="30" y="20" text-anchor="middle" stroke="#000000" font-size="15" class="chips-text">
-        0
-    </text>
-    <svg class="button" width="25" height="25" x="72.5" y="2.5">
-        <rect class="button-background" width="100%" height="100%" fill="black" />
-    </svg>
+  <rect width="100%" height="100%" ry="5" rx="5" class="chips-background" />
+  <text x="30" y="20" text-anchor="middle" stroke="#000000" font-size="15" class="chips-text">
+    0
+  </text>
+  <svg class="button" width="25" height="25" x="72.5" y="2.5">
+    <rect class="button-background" width="100%" height="100%" fill="black" />
+  </svg>
 </svg>
