@@ -19,7 +19,7 @@ def test_all_but_one_fold():
         obs, payouts, done = dealer.step(bet)
 
     assert all(done)
-    assert obs["pot"] == 3
+    assert obs["pot"] == 0
     test_payouts = [0, -1, 1, 0, 0, 0]
     assert all(
         payout == test_payout for payout, test_payout in zip(payouts, test_payouts)
@@ -44,7 +44,7 @@ def test_all_all_in():
         obs, payouts, done = dealer.step(bet)
 
     assert all(done)
-    assert obs["pot"] == 1200
+    assert obs["pot"] == 0
     test_payouts = [-200, -200, -200, -200, -200, 1000]
     assert all(
         payout == test_payout for payout, test_payout in zip(payouts, test_payouts)
@@ -95,7 +95,7 @@ def test_too_few_players():
         obs, payouts, done = dealer.step(bet)
 
     assert all(done)
-    assert obs["pot"] == 1200
+    assert obs["pot"] == 0
     test_payouts = [-200, -200, -200, -200, -200, 1000]
     assert all(
         payout == test_payout for payout, test_payout in zip(payouts, test_payouts)

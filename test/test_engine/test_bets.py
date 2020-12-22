@@ -56,9 +56,6 @@ def test_all_in_bet_size():
     bet = 100
     obs, *_ = dealer.step(bet)
     assert obs["pot"] == 52
-    bet = 1000
-    obs, *_ = dealer.step(bet)
-    assert obs["pot"] == 400
 
 
 def test_incomplete_raise():
