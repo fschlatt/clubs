@@ -259,7 +259,7 @@ class Deck:
         return self
 
     def trick(
-        self, top_cards: Optional[List[Union[str, Card]]] = None, shuffle: bool = True
+        self, top_cards: Optional[Union[List[str], List[Card]]] = None,
     ) -> "Deck":
         """Tricks the deck by placing a fixed order of cards on the top
         of the deck and shuffling the rest. E.g.
