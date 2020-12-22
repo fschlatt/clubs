@@ -480,7 +480,7 @@ class SVGPoker:
         table = SVGElement("table")
         player = SVGElement("player")
         card = SVGElement("card")
-        pot_commit = SVGElement("pot_commit")
+        street_commit = SVGElement("street_commit")
         for pattern in SVGElement("patterns").get_sub_svgs("pattern"):
             base.append(pattern)
 
@@ -490,21 +490,21 @@ class SVGPoker:
         player_rectangle = RoundedRectangle(table.x, table.y, table.width, table.height)
         player_rectangle.width += 100
         player_rectangle.height += 100
-        pot_commit_rectangle = RoundedRectangle(
+        street_commit_rectangle = RoundedRectangle(
             table.x, table.y, table.width, table.height
         )
-        pot_commit_rectangle.width -= 200
-        pot_commit_rectangle.height -= 160
+        street_commit_rectangle.width -= 200
+        street_commit_rectangle.height -= 160
 
         players = self.add_players(player, card, player_rectangle)
-        pot_commits = self.add_pot_commits(pot_commit, pot_commit_rectangle)
+        street_commits = self.add_street_commits(street_commit, street_commit_rectangle)
         community = self.add_community(player, card)
         community.center(other=table)
         community.x += table.x
         community.y += table.y - 40
 
         base.extend(players)
-        base.extend(pot_commits)
+        base.extend(street_commits)
         base.append(community)
 
         return base
@@ -622,27 +622,27 @@ class SVGPoker:
         card_0.x -= 10
         return community
 
-    def add_pot_commits(
-        self, pot_commit: SVGElement, pot_commit_retangle: RoundedRectangle
+    def add_street_commits(
+        self, street_commit: SVGElement, street_commit_retangle: RoundedRectangle
     ) -> List[SVGElement]:
-        pot_commits = []
+        street_commits = []
         for player_idx in range(self.num_players):
-            x, y = pot_commit_retangle.edge(player_idx / (self.num_players))
-            new_pot_commit = pot_commit.copy()
-            new_pot_commit.id = f"pot-commit-{player_idx}"
-            pot_commit_background = new_pot_commit.get_sub_svg(
+            x, y = street_commit_retangle.edge(player_idx / (self.num_players))
+            new_street_commit = street_commit.copy()
+            new_street_commit.id = f"pot-commit-{player_idx}"
+            street_commit_background = new_street_commit.get_sub_svg(
                 "chips-background", "class"
             )
-            pot_commit_background.id = f"pot-commit-background-{player_idx}"
-            pot_commit_text = new_pot_commit.get_sub_svg("chips-text", "class")
-            pot_commit_text.id = f"pot-commit-text-{player_idx}"
-            button = new_pot_commit.get_sub_svg("button", "class")
+            street_commit_background.id = f"pot-commit-background-{player_idx}"
+            street_commit_text = new_street_commit.get_sub_svg("chips-text", "class")
+            street_commit_text.id = f"pot-commit-text-{player_idx}"
+            button = new_street_commit.get_sub_svg("button", "class")
             button.id = f"button-{player_idx}"
             button_background = button.get_sub_svg("button-background", "class")
             button_background.id = f"button-background-{player_idx}"
-            new_pot_commit.center(x=round(x), y=round(y))
-            pot_commits.append(new_pot_commit)
-        return pot_commits
+            new_street_commit.center(x=round(x), y=round(y))
+            street_commits.append(new_street_commit)
+        return street_commits
 
     def generate(self):
         return self.base_svg

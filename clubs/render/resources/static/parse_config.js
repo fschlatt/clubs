@@ -96,10 +96,10 @@
     pot.innerHTML = config["pot"];
   }
 
-  function update_potcommit(config) {
-    for (let player_idx = 0; player_idx < config["pot_commit"].length; player_idx++) {
-      let pot_commit = config["pot_commit"][player_idx];
-      document.getElementById(`pot-commit-text-${player_id}`).innerHTML = pot_commit;
+  function update_street_commit(config) {
+    for (let player_idx = 0; player_idx < config["street_commit"].length; player_idx++) {
+      let street_commit = config["street_commit"][player_idx];
+      document.getElementById(`street-commit-text-${player_id}`).innerHTML = street_commit;
     }
 
     socket.on('config', function (config) {
