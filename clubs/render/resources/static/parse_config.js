@@ -5,7 +5,7 @@
     let players = document.getElementsByClassName("player");
     for (let player_idx = 0; player_idx < players.length; player_idx++) {
       let player = players[player_idx];
-      player.getElementById(`chips-text-player-${player_idx}`).innerHTML = 0;
+      player.getElementById(`chips-text-${player_idx}`).innerHTML = 0;
       let card_backgrounds = player.getElementsByClassName("card-background");
       for (let card_background of card_backgrounds) {
         card_background.setAttribute("fill", "url(#card-back)");
@@ -14,6 +14,10 @@
       for (let card_text of card_texts) {
         card_text.innerHTML = "";
       }
+    }
+    let player_backgrounds = document.getElementsByClassName("player-background");
+    for (let player_background of player_backgrounds) {
+      player_background.setAttribute("fill", "#ffffff")
     }
   }
 
@@ -39,20 +43,18 @@
     community.getElementById("pot-text").innerHTML = 0;
   }
 
-  function update_cards(config) {
+  function update_players(config) {
     for (let player_idx = 0; player_idx < config["hole_cards"].length; player_idx++) {
-      let cards = config["hole_cards"][player_idx];
-      for (let card_idx = 0; card_idx < cards.length; card_idx++) {
-        let card = document.getElementById(`card-player-${player_idx}-${card_idx}`);
-        let card_string = cards[card_idx];
-        update_card(card, card_string)
+      document.getElementById(`street-commit-text-${player_idx}`).innerHTML = config["street_commits"][player_idx];
+      document.getElementById(`chips-text-${player_idx}`).innerHTML = config["stacks"][player_idx];
+      if (config["active"][player_idx]) {
+        let cards = config["hole_cards"][player_idx];
+        for (let card_idx = 0; card_idx < cards.length; card_idx++) {
+          let card = document.getElementById(`card-${player_idx}-${card_idx}`);
+          let card_string = cards[card_idx];
+          update_card(card, card_string)
+        }
       }
-    }
-    let cards = config["community_cards"];
-    for (let card_idx = 1; card_idx < cards.length; card_idx++) {
-      let card = document.getElementById(`card-community-${card_idx}`);
-      let card_string = cards[card_idx];
-      update_card(card, card_string)
     }
   }
 
@@ -86,20 +88,26 @@
     }
   }
 
+  function update_community(config) {
+    let cards = config["community_cards"];
+    for (let card_idx = 0; card_idx < cards.length; card_idx++) {
+      let card = document.getElementById(`card-community-${card_idx + 1}`);
+      let card_string = cards[card_idx];
+      update_card(card, card_string)
+    }
+    let pot = document.getElementById("pot-text");
+    pot.innerHTML = config["pot"];
+  }
+
   function update_button(config) {
     let button_background = document.getElementById(`button-background-${config["button"]}`)
     button_background.setAttribute("fill", "url(#dealer)");
   }
 
-  function update_pot(config) {
-    let pot = document.getElementById("pot-text");
-    pot.innerHTML = config["pot"];
-  }
-
-  function update_street_commit(config) {
-    for (let player_idx = 0; player_idx < config["street_commits"].length; player_idx++) {
-      let street_commit = config["street_commits"][player_idx];
-      document.getElementById(`street-commit-text-${player_idx}`).innerHTML = street_commit;
+  function update_action(config) {
+    if (config["action"] >= 0) {
+      let player_background = document.getElementById(`player-background-${config["action"]}`)
+      player_background.setAttribute("fill", "#000000")
     }
   }
 
@@ -109,10 +117,10 @@
     reset_button();
 
     if (config.hasOwnProperty("hole_cards")) {
-      update_cards(config);
+      update_players(config);
+      update_community(config);
       update_button(config);
-      update_pot(config);
-      update_street_commit(config);
+      update_action(config);
     }
   })
 })()

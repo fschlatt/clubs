@@ -122,6 +122,7 @@ class GraphicViewer(viewer.PokerViewer):
                         "unable to reach flask process"
                     )
                 time.sleep(1)
+        del config["prev_action"]
         self.socket.send({"content": jsonify(config)})
         if sleep:
             time.sleep(sleep)
@@ -535,9 +536,9 @@ class SVGPoker:
             offset = (-card_width * num_cards / 2) + card_width * (card_idx + 0.5)
             new_card.x += offset
             new_card.id = f"card-{label}-{card_idx}"
-            card_background = card.get_sub_svg("card-background", "class")
+            card_background = new_card.get_sub_svg("card-background", "class")
             card_background.id = f"card-background-{label}-{card_idx}"
-            card_text = card.get_sub_svg("card-text", "class")
+            card_text = new_card.get_sub_svg("card-text", "class")
             card_text.id = f"card-text-{label}-{card_idx}"
             cards.append(new_card)
         return new_player
@@ -571,7 +572,7 @@ class SVGPoker:
         for player_idx in range(self.num_players):
             x, y = player_rectangle.edge(player_idx / (self.num_players))
             new_player = self.new_player(
-                player, f"player-{player_idx}", card, self.num_hole_cards
+                player, str(player_idx), card, self.num_hole_cards
             )
             new_player.center(x=round(x), y=round(y))
             players.append(new_player)
@@ -613,7 +614,6 @@ class SVGPoker:
         chips.id = "pot"
         chips.get_sub_svg("chips-background", "class").id = "pot-background"
         chips.get_sub_svg("chips-text", "class").id = "pot-text"
-
         community.set_svg_attr("class", "community")
         card_0 = community.get_sub_svg("card-community-0", "id")
         card_0.get_sub_svg("card-background", "class").set_svg_attr(
