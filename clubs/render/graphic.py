@@ -28,7 +28,7 @@ class GraphicViewer(viewer.PokerViewer):
 
         self.port = port
 
-        self.svg_table = SVGTable(
+        self.svg_poker = SVGPoker(
             self.num_players, self.num_hole_cards, self.num_community_cards
         )
 
@@ -58,7 +58,7 @@ class GraphicViewer(viewer.PokerViewer):
 
         @app.route("/")
         def index():
-            svg = str(self.svg_table.generate())
+            svg = str(self.svg_poker.base_svg)
             return flask.render_template("index.html", svg=flask.Markup(svg))
 
         def listener():
@@ -462,8 +462,11 @@ class SVGElement:
         self.svg.remove(other.svg)
         return self
 
+    def copy(self) -> "SVGElement":
+        return copy.deepcopy(self)
 
-class SVGTable:
+
+class SVGPoker:
     def __init__(
         self, num_players: int, num_hole_cards: int, num_community_cards: int
     ) -> None:
@@ -477,7 +480,7 @@ class SVGTable:
         table = SVGElement("table")
         player = SVGElement("player")
         card = SVGElement("card")
-        button = SVGElement("button")
+        pot_commit = SVGElement("pot_commit")
         for pattern in SVGElement("patterns").get_sub_svgs("pattern"):
             base.append(pattern)
 
@@ -486,20 +489,22 @@ class SVGTable:
 
         player_rectangle = RoundedRectangle(table.x, table.y, table.width, table.height)
         player_rectangle.width += 100
-        player_rectangle.height += 60
-        button_rectangle = RoundedRectangle(table.x, table.y, table.width, table.height)
-        button_rectangle.width -= 200
-        button_rectangle.height -= 160
+        player_rectangle.height += 100
+        pot_commit_rectangle = RoundedRectangle(
+            table.x, table.y, table.width, table.height
+        )
+        pot_commit_rectangle.width -= 200
+        pot_commit_rectangle.height -= 160
 
         players = self.add_players(player, card, player_rectangle)
-        buttons = self.add_buttons(button, button_rectangle)
+        pot_commits = self.add_pot_commits(pot_commit, pot_commit_rectangle)
         community = self.add_community(player, card)
         community.center(other=table)
         community.x += table.x
         community.y += table.y - 40
 
         base.extend(players)
-        base.extend(buttons)
+        base.extend(pot_commits)
         base.append(community)
 
         return base
@@ -508,7 +513,7 @@ class SVGTable:
     def new_player(
         player: SVGElement, label: str, card: SVGElement, num_cards: int
     ) -> SVGElement:
-        new_player = copy.deepcopy(player)
+        new_player = player.copy()
         new_player.id = label
         card_width = card.width
         if card_width is None:
@@ -525,7 +530,7 @@ class SVGTable:
         chips_text = chips.get_sub_svg("chips-text", "class")
         chips_text.id = f"chips-text-{label}"
         for card_idx in range(num_cards):
-            new_card = copy.deepcopy(card)
+            new_card = card.copy()
             new_card.center_x(cards)
             offset = (-card_width * num_cards / 2) + card_width * (card_idx + 0.5)
             new_card.x += offset
@@ -541,8 +546,8 @@ class SVGTable:
         self, player: SVGElement, card: SVGElement, player_rectangle: RoundedRectangle
     ) -> List[SVGElement]:
         players = []
-        player = copy.deepcopy(player)
-        card = copy.deepcopy(card)
+        player = player.copy()
+        card = card.copy()
         player.width = max(
             0 if player.width is None else player.width,
             card.width * self.num_hole_cards + 20,
@@ -578,15 +583,15 @@ class SVGTable:
         buttons = []
         for player_idx in range(self.num_players):
             x, y = button_rectangle.edge(player_idx / (self.num_players))
-            new_button = copy.deepcopy(button)
+            new_button = button.copy()
             new_button.id = f"button-{player_idx}"
             new_button.center(x=round(x), y=round(y))
             buttons.append(new_button)
         return buttons
 
     def add_community(self, player: SVGElement, card: SVGElement) -> SVGElement:
-        community = copy.deepcopy(player)
-        card = copy.deepcopy(card)
+        community = player.copy()
+        card = card.copy()
 
         community.width = card.width * (self.num_community_cards + 1) + 20
         cards = community.get_sub_svg("cards", "class")
@@ -616,6 +621,28 @@ class SVGTable:
         )
         card_0.x -= 10
         return community
+
+    def add_pot_commits(
+        self, pot_commit: SVGElement, pot_commit_retangle: RoundedRectangle
+    ) -> List[SVGElement]:
+        pot_commits = []
+        for player_idx in range(self.num_players):
+            x, y = pot_commit_retangle.edge(player_idx / (self.num_players))
+            new_pot_commit = pot_commit.copy()
+            new_pot_commit.id = f"pot-commit-{player_idx}"
+            pot_commit_background = new_pot_commit.get_sub_svg(
+                "chips-background", "class"
+            )
+            pot_commit_background.id = f"pot-commit-background-{player_idx}"
+            pot_commit_text = new_pot_commit.get_sub_svg("chips-text", "class")
+            pot_commit_text.id = f"pot-commit-text-{player_idx}"
+            button = new_pot_commit.get_sub_svg("button", "class")
+            button.id = f"button-{player_idx}"
+            button_background = button.get_sub_svg("button-background", "class")
+            button_background.id = f"button-background-{player_idx}"
+            new_pot_commit.center(x=round(x), y=round(y))
+            pot_commits.append(new_pot_commit)
+        return pot_commits
 
     def generate(self):
         return self.base_svg

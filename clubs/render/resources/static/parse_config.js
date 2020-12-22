@@ -3,8 +3,9 @@
 
   function reset_player() {
     let players = document.getElementsByClassName("player");
-    for (let player of players) {
-      player.getElementsByClassName("stack-text").innerHTML = 0;
+    for (let player_idx = 0; player_idx < players.length; player_idx++) {
+      let player = players[player_idx];
+      player.getElementById(`chips-text-player-${player_idx}`).innerHTML = 0;
       let card_backgrounds = player.getElementsByClassName("card-background");
       for (let card_background of card_backgrounds) {
         card_background.setAttribute("fill", "url(#card-back)");
@@ -17,7 +18,7 @@
   }
 
   function reset_button() {
-    let buttons = document.getElementsByClassName("button");
+    let buttons = document.getElementsByClassName("button-background");
     for (let button of buttons) {
       button.setAttribute("fill", "transparent");
     }
@@ -30,7 +31,12 @@
     for (let i = 1; i < card_backgrounds.length; i++) {
       card_backgrounds[i].setAttribute("fill", "url(#card-blank)");
     }
-    community.getElementsByClassName("stack-text").innerHTML = 0;
+    let card_texts = community.getElementsByClassName("card-text");
+    card_texts[0].setAttribute("fill", "url(#card-back)");
+    for (let i = 1; i < card_texts.length; i++) {
+      card_texts[i].innerHTML = "";
+    }
+    community.getElementById("pot-text").innerHTML = 0;
   }
 
   function update_cards(config) {
@@ -59,22 +65,29 @@
     let suit = card_string[1];
     if (suit == "♣") {
       card.getElementsByClassName("card-background")[0].setAttribute("fill", "url(#card-club)");
-      card.getElementsByClassName("card-text")[0].setAttribute("stroke", "black");
+      let card_text = card.getElementsByClassName("card-text")[0]
+      card_text.setAttribute("stroke", "black");
+      card_text.setAttribute("fill", "black");
     } else if (suit == "♠") {
       card.getElementsByClassName("card-background")[0].setAttribute("fill", "url(#card-spade)");
-      card.getElementsByClassName("card-text")[0].setAttribute("stroke", "black");
+      let card_text = card.getElementsByClassName("card-text")[0]
+      card_text.setAttribute("stroke", "black");
+      card_text.setAttribute("fill", "black");
     } else if (suit == "♥") {
       card.getElementsByClassName("card-background")[0].setAttribute("fill", "url(#card-heart)");
-      card.getElementsByClassName("card-text")[0].setAttribute("stroke", "red");
+      let card_text = card.getElementsByClassName("card-text")[0]
+      card_text.setAttribute("stroke", "red");
+      card_text.setAttribute("fill", "red");
     } else if (suit == "♦") {
       card.getElementsByClassName("card-background")[0].setAttribute("fill", "url(#card-diamond)");
-      card.getElementsByClassName("card-text")[0].setAttribute("stroke", "red");
+      let card_text = card.getElementsByClassName("card-text")[0]
+      card_text.setAttribute("stroke", "red");
+      card_text.setAttribute("fill", "red");
     }
   }
 
   function update_button(config) {
-    let button = document.getElementById(`button-${config["button"]}`)
-    let button_background = button.getElementsByClassName("button-background")[0]
+    let button_background = document.getElementById(`button-background-${config["button"]}`)
     button_background.setAttribute("fill", "url(#dealer)");
   }
 
@@ -83,15 +96,21 @@
     pot.innerHTML = config["pot"];
   }
 
-  socket.on('config', function (config) {
-    reset_player();
-    reset_community();
-    reset_button();
-
-    if (config.hasOwnProperty("hole_cards")) {
-      update_cards(config);
-      update_button(config);
-      update_pot(config);
+  function update_potcommit(config) {
+    for (let player_idx = 0; player_idx < config["pot_commit"].length; player_idx++) {
+      let pot_commit = config["pot_commit"][player_idx];
+      document.getElementById(`pot-commit-text-${player_id}`).innerHTML = pot_commit;
     }
-  })
-})()
+
+    socket.on('config', function (config) {
+      reset_player();
+      reset_community();
+      reset_button();
+
+      if (config.hasOwnProperty("hole_cards")) {
+        update_cards(config);
+        update_button(config);
+        update_pot(config);
+      }
+    })
+  }) ()
