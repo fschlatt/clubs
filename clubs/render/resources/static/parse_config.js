@@ -101,16 +101,17 @@
       let street_commit = config["street_commit"][player_idx];
       document.getElementById(`street-commit-text-${player_id}`).innerHTML = street_commit;
     }
+  }
 
-    socket.on('config', function (config) {
-      reset_player();
-      reset_community();
-      reset_button();
+  socket.on('config', function (config) {
+    reset_player();
+    reset_community();
+    reset_button();
 
-      if (config.hasOwnProperty("hole_cards")) {
-        update_cards(config);
-        update_button(config);
-        update_pot(config);
-      }
-    })
-  }) ()
+    if (config.hasOwnProperty("hole_cards")) {
+      update_cards(config);
+      update_button(config);
+      update_pot(config);
+    }
+  })
+})()
