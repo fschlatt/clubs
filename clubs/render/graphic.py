@@ -629,13 +629,13 @@ class SVGPoker:
         for player_idx in range(self.num_players):
             x, y = street_commit_retangle.edge(player_idx / (self.num_players))
             new_street_commit = street_commit.copy()
-            new_street_commit.id = f"pot-commit-{player_idx}"
+            new_street_commit.id = f"street-commit-{player_idx}"
             street_commit_background = new_street_commit.get_sub_svg(
                 "chips-background", "class"
             )
-            street_commit_background.id = f"pot-commit-background-{player_idx}"
+            street_commit_background.id = f"street-commit-background-{player_idx}"
             street_commit_text = new_street_commit.get_sub_svg("chips-text", "class")
-            street_commit_text.id = f"pot-commit-text-{player_idx}"
+            street_commit_text.id = f"street-commit-text-{player_idx}"
             button = new_street_commit.get_sub_svg("button", "class")
             button.id = f"button-{player_idx}"
             button_background = button.get_sub_svg("button-background", "class")
