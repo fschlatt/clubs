@@ -493,8 +493,8 @@ class Dealer:
         # if min raise or max raise closest
         if idx in (2, 3):
             return round(min(max_raise, max(min_raise, bet)))
-        # if fold closest
-        return -1
+        # if check/fold closest
+        return 0
 
     def _collect_multiple_bets(self, bets: List[int], street_commits: bool = True):
         bets = np.roll(bets, self.action)
