@@ -1,34 +1,45 @@
 import random
+import time
 
 import clubs
 
-# 1-2 no limit 6 player texas hold'em
-config = clubs.configs.NO_LIMIT_HOLDEM_SIX_PLAYER
-dealer = clubs.poker.Dealer(**config)
-obs = dealer.reset()
 
-while True:
-    # number of chips a player must bet to call
-    call = obs["call"]
-    # smallest number of chips a player is allowed to bet for a raise
-    min_raise = obs["min_raise"]
-    # largest number of chips a player is allowed to bet for a raise
-    max_raise = obs["max_raise"]
+def main():
+    # 1-2 no limit 6 player texas hold'em
+    config = clubs.configs.NO_LIMIT_HOLDEM_NINE_PLAYER
+    dealer = clubs.poker.Dealer(**config)
+    obs = dealer.reset()
 
-    rand = random.random()
-    # 10% chance to fold
-    if rand < 0.1:
-        bet = 0
-    # 80% chance to call
-    elif rand < 0.80:
-        bet = call
-    # 10% to raise
-    else:
-        bet = random.randint(min_raise, max_raise)
+    dealer.render()
+    time.sleep(1)
 
-    obs, rewards, done = dealer.step(bet)
+    while True:
+        # number of chips a player must bet to call
+        call = obs["call"]
+        # smallest number of chips a player is allowed to bet for a raise
+        min_raise = obs["min_raise"]
 
-    if all(done):
-        break
+        rand = random.random()
+        # 15% chance to fold
+        if rand < 0.15:
+            bet = 0
+        # 80% chance to call
+        elif rand < 0.95:
+            bet = call
+        # 5% to raise to min_raise
+        else:
+            bet = min_raise
 
-print(rewards)
+        obs, rewards, done = dealer.step(bet)
+
+        dealer.render()
+        time.sleep(1)
+
+        if all(done):
+            break
+
+    print(rewards)
+
+
+if __name__ == "__main__":
+    main()
