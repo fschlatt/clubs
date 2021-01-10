@@ -32,7 +32,7 @@ class Evaluator(object):
         order=None, hands are ranked by rarity. by default None
     """
 
-    def _init_(
+    def __init__(
         self,
         suits: int,
         ranks: int,
@@ -68,10 +68,10 @@ class Evaluator(object):
         ]
         self.hand_ranks = " > ".join(hands)
 
-    def _str_(self) -> str:
+    def __str__(self) -> str:
         return self.hand_ranks
 
-    def _repr_(self) -> str:
+    def __repr__(self) -> str:
         return f"Evaluator ({id(self)}): {str(self)}"
 
     def evaluate(
@@ -178,7 +178,7 @@ class LookupTable:
 
     ORDER_STRINGS = ["sf", "fk", "fh", "fl", "st", "tk", "tp", "pa", "hc"]
 
-    def _init_(
+    def __init__(
         self,
         suits: int,
         ranks: int,
@@ -314,7 +314,8 @@ class LookupTable:
         prime = card.prime_product_from_hand(cards)
         return self.unsuited_lookup[prime]
 
-    def _straight_flush(self, suits, ranks, cards_for_hand, low_end_straight):
+    @staticmethod
+    def _straight_flush(suits, ranks, cards_for_hand, low_end_straight):
         if cards_for_hand < 3 or suits < 2:
             return 0, 0
         # number of smallest cards which start straight
@@ -323,7 +324,8 @@ class LookupTable:
         suited = max(unsuited, unsuited * suits)
         return int(suited), int(unsuited)
 
-    def _four_of_a_kind(self, suits, ranks, cards_for_hand):
+    @staticmethod
+    def _four_of_a_kind(suits, ranks, cards_for_hand):
         if cards_for_hand < 4 or suits < 4:
             return 0, 0
         # choose 1 rank for quads multiplied by
@@ -333,7 +335,8 @@ class LookupTable:
         suited = max(unsuited, unsuited * suits ** (cards_for_hand - 4))
         return int(suited), int(unsuited)
 
-    def _full_house(self, suits, ranks, cards_for_hand):
+    @staticmethod
+    def _full_house(suits, ranks, cards_for_hand):
         if cards_for_hand < 5 or suits < 3:
             return 0, 0
         # choose one rank for trips and pair multiplied by
@@ -349,7 +352,8 @@ class LookupTable:
         )
         return int(suited), int(unsuited)
 
-    def _flush(self, suits, ranks, cards_for_hand, low_end_straight):
+    @staticmethod
+    def _flush(suits, ranks, cards_for_hand, low_end_straight):
         if cards_for_hand < 3 or suits < 2:
             return 0, 0
         # all straight combinations
@@ -360,7 +364,8 @@ class LookupTable:
         suited = max(unsuited, unsuited * suits)
         return int(suited), int(unsuited)
 
-    def _straight(self, suits, ranks, cards_for_hand, low_end_straight):
+    @staticmethod
+    def _straight(suits, ranks, cards_for_hand, low_end_straight):
         if cards_for_hand < 3:
             return 0, 0
         # number of smallest cards which start straight
@@ -376,7 +381,8 @@ class LookupTable:
             suited = unsuited
         return int(suited), int(unsuited)
 
-    def _three_of_a_kind(self, suits, ranks, cards_for_hand):
+    @staticmethod
+    def _three_of_a_kind(suits, ranks, cards_for_hand):
         if cards_for_hand < 3 or suits < 3:
             return 0, 0
         # choose one rank for trips multiplied by
@@ -388,7 +394,8 @@ class LookupTable:
         )
         return int(suited), int(unsuited)
 
-    def _two_pair(self, suits, ranks, cards_for_hand):
+    @staticmethod
+    def _two_pair(suits, ranks, cards_for_hand):
         if cards_for_hand < 4 or suits < 2:
             return 0, 0
         # choose two ranks for pairs multiplied by
@@ -401,7 +408,8 @@ class LookupTable:
         )
         return int(suited), int(unsuited)
 
-    def _pair(self, suits, ranks, cards_for_hand):
+    @staticmethod
+    def _pair(suits, ranks, cards_for_hand):
         if cards_for_hand < 2 or suits < 2:
             return 0, 0
         # choose rank for pair multiplied by
@@ -413,7 +421,8 @@ class LookupTable:
         )
         return int(suited), int(unsuited)
 
-    def _high_card(self, suits, ranks, cards_for_hand, low_end_straight):
+    @staticmethod
+    def _high_card(suits, ranks, cards_for_hand, low_end_straight):
         # number of smallest cards which start straight
         straights = 0
         if cards_for_hand > 2:
