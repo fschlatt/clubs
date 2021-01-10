@@ -2,7 +2,7 @@
 import functools
 import itertools
 import operator
-from typing import Dict, List
+from typing import Dict, Iterator, List, Tuple
 
 from clubs import error
 
@@ -315,7 +315,9 @@ class LookupTable:
         return self.unsuited_lookup[prime]
 
     @staticmethod
-    def _straight_flush(suits, ranks, cards_for_hand, low_end_straight):
+    def _straight_flush(
+        suits: int, ranks: int, cards_for_hand: int, low_end_straight: bool
+    ) -> Tuple[int, int]:
         if cards_for_hand < 3 or suits < 2:
             return 0, 0
         # number of smallest cards which start straight
@@ -325,7 +327,7 @@ class LookupTable:
         return int(suited), int(unsuited)
 
     @staticmethod
-    def _four_of_a_kind(suits, ranks, cards_for_hand):
+    def _four_of_a_kind(suits: int, ranks: int, cards_for_hand: int) -> Tuple[int, int]:
         if cards_for_hand < 4 or suits < 4:
             return 0, 0
         # choose 1 rank for quads multiplied by
@@ -336,7 +338,7 @@ class LookupTable:
         return int(suited), int(unsuited)
 
     @staticmethod
-    def _full_house(suits, ranks, cards_for_hand):
+    def _full_house(suits: int, ranks: int, cards_for_hand: int) -> Tuple[int, int]:
         if cards_for_hand < 5 or suits < 3:
             return 0, 0
         # choose one rank for trips and pair multiplied by
@@ -353,7 +355,9 @@ class LookupTable:
         return int(suited), int(unsuited)
 
     @staticmethod
-    def _flush(suits, ranks, cards_for_hand, low_end_straight):
+    def _flush(
+        suits: int, ranks: int, cards_for_hand: int, low_end_straight: bool
+    ) -> Tuple[int, int]:
         if cards_for_hand < 3 or suits < 2:
             return 0, 0
         # all straight combinations
@@ -365,7 +369,9 @@ class LookupTable:
         return int(suited), int(unsuited)
 
     @staticmethod
-    def _straight(suits, ranks, cards_for_hand, low_end_straight):
+    def _straight(
+        suits: int, ranks: int, cards_for_hand: int, low_end_straight: bool
+    ) -> Tuple[int, int]:
         if cards_for_hand < 3:
             return 0, 0
         # number of smallest cards which start straight
@@ -382,7 +388,9 @@ class LookupTable:
         return int(suited), int(unsuited)
 
     @staticmethod
-    def _three_of_a_kind(suits, ranks, cards_for_hand):
+    def _three_of_a_kind(
+        suits: int, ranks: int, cards_for_hand: int
+    ) -> Tuple[int, int]:
         if cards_for_hand < 3 or suits < 3:
             return 0, 0
         # choose one rank for trips multiplied by
@@ -395,7 +403,7 @@ class LookupTable:
         return int(suited), int(unsuited)
 
     @staticmethod
-    def _two_pair(suits, ranks, cards_for_hand):
+    def _two_pair(suits: int, ranks: int, cards_for_hand: int) -> Tuple[int, int]:
         if cards_for_hand < 4 or suits < 2:
             return 0, 0
         # choose two ranks for pairs multiplied by
@@ -409,7 +417,7 @@ class LookupTable:
         return int(suited), int(unsuited)
 
     @staticmethod
-    def _pair(suits, ranks, cards_for_hand):
+    def _pair(suits: int, ranks: int, cards_for_hand: int) -> Tuple[int, int]:
         if cards_for_hand < 2 or suits < 2:
             return 0, 0
         # choose rank for pair multiplied by
@@ -422,7 +430,9 @@ class LookupTable:
         return int(suited), int(unsuited)
 
     @staticmethod
-    def _high_card(suits, ranks, cards_for_hand, low_end_straight):
+    def _high_card(
+        suits: int, ranks: int, cards_for_hand: int, low_end_straight: bool
+    ) -> Tuple[int, int]:
         # number of smallest cards which start straight
         straights = 0
         if cards_for_hand > 2:
@@ -437,7 +447,9 @@ class LookupTable:
         return int(suited), int(unsuited)
 
     @staticmethod
-    def _gen_straight_flush(cards_for_hand, ranks, low_end_straight):
+    def _gen_straight_flush(
+        cards_for_hand: int, ranks: int, low_end_straight: bool
+    ) -> List[int]:
         straight_flushes = []
 
         # start with best straight (flush)
@@ -460,7 +472,9 @@ class LookupTable:
         return straight_flushes
 
     @staticmethod
-    def _gen_flush(cards_for_hand, ranks, straight_flushes):
+    def _gen_flush(
+        cards_for_hand: int, ranks: int, straight_flushes: List[int]
+    ) -> List[int]:
         flushes = []
         # start with lowest non pair hand
         # for 5 card hand with 13 ranks: 0b11111
@@ -477,7 +491,7 @@ class LookupTable:
         flushes.reverse()
         return flushes
 
-    def _flushes(self, ranks, cards_for_hand, low_end_straight):
+    def _flushes(self, ranks: int, cards_for_hand: int, low_end_straight: bool) -> None:
         straight_flushes = []
         if (
             self.hand_dict["straight flush"]["cumulative unsuited"]
@@ -496,7 +510,7 @@ class LookupTable:
         ):
             flushes = self._gen_flush(cards_for_hand, ranks, straight_flushes)
 
-        def add_to_table(rank_string, rank_bits, suited):
+        def add_to_table(rank_string: str, rank_bits: List[int], suited: bool) -> None:
             if not self.hand_dict[rank_string]["cumulative unsuited"]:
                 return
             num_ranks = len(rank_bits)
@@ -515,8 +529,8 @@ class LookupTable:
         add_to_table("straight", straight_flushes, False)
         add_to_table("high card", flushes, False)
 
-    def _multiples(self, ranks, cards_for_hand):
-        def add_to_table(rank_string, multiples):
+    def _multiples(self, ranks: int, cards_for_hand: int) -> None:
+        def add_to_table(rank_string: str, multiples: List[int]) -> None:
             # inverse ranks, A - 2
             backwards_ranks = list(range(13 - 1, 13 - 1 - ranks, -1))
             if not self.hand_dict[rank_string]["cumulative unsuited"]:
@@ -550,9 +564,9 @@ class LookupTable:
                     kicker_combinations = list(
                         itertools.combinations(kickers, num_kickers)
                     )
-                    for kickers in kicker_combinations:
+                    for kickers_tuple in kicker_combinations:
                         product = base_product
-                        for kicker in kickers:
+                        for kicker in kickers_tuple:
                             product *= card.PRIMES[kicker]
                         self.unsuited_lookup[product] = hand_rank
                         hand_rank += 1
@@ -569,7 +583,7 @@ class LookupTable:
         add_to_table("two pair", [2, 2])
         add_to_table("pair", [2])
 
-    def _get_rank(self, hand):
+    def _get_rank(self, hand: str) -> int:
         rank = self.hand_dict[hand]["rank"]
         if not rank:
             return 0
@@ -577,7 +591,7 @@ class LookupTable:
         return self.hand_dict[better_hand]["cumulative unsuited"] + 1
 
 
-def _lexographic_next_bit(bits):
+def _lexographic_next_bit(bits: int) -> Iterator[int]:
     # generator next legographic bit sequence given a bit sequence with
     # N bits set e.g.
     # 00010011 -> 00010101 -> 00010110 -> 00011001 ->
@@ -590,8 +604,8 @@ def _lexographic_next_bit(bits):
         yield lex
 
 
-def _ncr(n, r):
+def _ncr(n: int, r: int) -> int:
     r = min(r, n - r)
     numer = functools.reduce(operator.mul, range(n, n - r, -1), 1)
     denom = functools.reduce(operator.mul, range(1, r + 1), 1)
-    return numer / denom
+    return numer // denom
