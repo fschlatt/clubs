@@ -20,5 +20,6 @@ if __CLUBS_SETUP__:  # type: ignore
     pass
 else:
     from . import configs, poker
+    from .poker import Card, Dealer, Deck, Evaluator, LookupTable
 
-__all__ = ["configs", "poker"]
+__all__ = ["configs", "poker", "Card", "Dealer", "Deck", "Evaluator", "LookupTable"]
