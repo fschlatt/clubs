@@ -10,7 +10,7 @@ __docs__ = (
 
 try:
     # This variable is injected in the __builtins__ by the build
-    # process. It used to enable importing subpackages of skimage when
+    # process. It is used to enable importing subpackages when
     # the binaries are not built
     __CLUBS_SETUP__  # type: ignore
 except NameError:
