@@ -578,18 +578,6 @@ class SVGPoker:
             players.append(new_player)
         return players
 
-    def add_buttons(
-        self, button: SVGElement, button_rectangle: RoundedRectangle
-    ) -> List[SVGElement]:
-        buttons = []
-        for player_idx in range(self.num_players):
-            x, y = button_rectangle.edge(player_idx / (self.num_players))
-            new_button = button.copy()
-            new_button.id = f"button-{player_idx}"
-            new_button.center(x=round(x), y=round(y))
-            buttons.append(new_button)
-        return buttons
-
     def add_community(self, player: SVGElement, card: SVGElement) -> SVGElement:
         community = player.copy()
         card = card.copy()
