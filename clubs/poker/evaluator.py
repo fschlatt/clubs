@@ -43,7 +43,7 @@ class Evaluator(object):
         order: list = None,
     ):
 
-        if cards_for_hand < 1 or cards_for_hand > 7:
+        if cards_for_hand < 1 or cards_for_hand > 5:
             raise error.InvalidHandSizeError(
                 f"Evaluation for {cards_for_hand} "
                 f"card hands is not supported. "

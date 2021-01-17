@@ -23,7 +23,7 @@ class GraphicViewer(viewer.PokerViewer):
         **kwargs,
     ):
         super(GraphicViewer, self).__init__(
-            num_players, num_hole_cards, num_community_cards
+            num_players, num_hole_cards, num_community_cards, **kwargs
         )
 
         self.port = port

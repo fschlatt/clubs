@@ -377,6 +377,7 @@ class Dealer:
             self.action = -1
             self.pot = 0
             observation["action"] = -1
+            observation["pot"] = 0
         return observation, payouts, done
 
     def _render_config(self):
