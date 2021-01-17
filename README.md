@@ -97,7 +97,8 @@ Some speed was sacrificed for the sake of better usability. Nonetheless, the eva
 
 ```python
 >>> import clubs
->>> avg_time = clubs.poker.evaluator.speed_test(4, 13, 5)
+>>> evaluator = clubs.poker.Evaluator(4, 13, 5)
+>>> avg_time = evaluator.speed_test()
 >>> print(f"Average time per evaluation: {avg_time}")
 Average time per evaluation: 1.3986515504075214e-06
 >>> print(f"Evaluations per second = {1.0/avg_time}")

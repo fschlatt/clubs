@@ -156,37 +156,29 @@ class Evaluator(object):
             )
         )
 
+    def speed_test(self, n: int = 100000) -> float:
+        """Tests speed of evaluator
 
-def speed_test(suits: int, ranks: int, cards_for_hand: int, n: int = 100000) -> float:
-    """Tests speed of evaluator
+        Parameters
+        ----------
+        n : int, optional
+            number of iterations/hands to test, by default 100000
 
-    Parameters
-    ----------
-    suits : int
-        number of suits in deck
-    ranks : int
-        number of ranks in deck
-    cards_for_hand : int
-        number of cards used for valid poker hand
-    n : int, optional
-        number of iterations/hands to test, by default 100000
+        Returns
+        -------
+        float
+            average time per hand evaluation
+        """
+        deck = card.Deck(self.suits, self.ranks)
 
-    Returns
-    -------
-    float
-        average time per hand evaluation
-    """
-    evaluator = Evaluator(suits, ranks, cards_for_hand)
-    deck = card.Deck(suits, ranks)
+        time = 0.0
+        for _ in range(n):
+            start = timer()
+            self.evaluate(deck.draw(2), deck.draw(5))
+            time += timer() - start
 
-    time = 0.0
-    for _ in range(n):
-        start = timer()
-        evaluator.evaluate(deck.draw(2), deck.draw(5))
-        time += timer() - start
-
-    avg = time / n
-    return avg
+        avg = time / n
+        return avg
 
 
 class LookupTable:
