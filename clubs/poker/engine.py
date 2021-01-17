@@ -378,6 +378,8 @@ class Dealer:
             self.pot = 0
             observation["action"] = -1
             observation["pot"] = 0
+            if any(payouts > 0):
+                self.stacks += payouts + self.pot_commit
         return observation, payouts, done
 
     def _render_config(self):
@@ -552,8 +554,6 @@ class Dealer:
         elif self.street >= self.num_streets:
             payouts = self._eval_round()
             payouts -= self.pot_commit
-        if any(payouts > 0):
-            self.stacks += payouts + self.pot_commit
         return payouts
 
     def _output(self) -> Tuple[Dict, np.ndarray, np.ndarray]:
