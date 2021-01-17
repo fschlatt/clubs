@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./clubs/resources/images/black_red_logo.svg" alt="Logo" width=200px>
+<img src="./clubs/render/resources/images/black_red_logo.svg" alt="Logo" width=200px>
 
 </div>
 
@@ -104,6 +104,16 @@ Average time per evaluation: 1.3986515504075214e-06
 >>> print(f"Evaluations per second = {1.0/avg_time}")
 Evaluations per second = 714974.362062254
 ```
+
+## Visualize
+
+3 different render modes are available via `dealer.render()`. The default render mode uses a web front which gets exposed on localhost with the default port 23948.
+
+<div align="center">
+
+<img src="./clubs/render/resources/static/images/render_example.png" alt="Render Example" width=1000>
+
+</div>
 
 ## Limitations
 
