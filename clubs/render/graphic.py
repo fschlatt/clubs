@@ -4,13 +4,15 @@ import multiprocessing
 import os
 import time
 from multiprocessing import connection
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union, overload
 from xml.etree import ElementTree as et
 
 import numpy as np
 
 from .. import error, poker
 from . import viewer
+
+Cards = TypeVar("Cards")
 
 
 class GraphicViewer(viewer.PokerViewer):
@@ -128,25 +130,44 @@ class GraphicViewer(viewer.PokerViewer):
             time.sleep(sleep)
 
 
+@overload
+def convert_hands(hands: List[poker.Card]) -> List[str]:
+    ...
+
+
+@overload
 def convert_hands(hands: List[List[poker.Card]]) -> List[List[str]]:
-    _hands = []
+    ...
+
+
+def convert_hands(
+    hands: Union[List[poker.Card], List[List[poker.Card]]]
+) -> Union[List[str], List[List[str]]]:
+    _hands: List[List[str]] = []
+    _cards: List[str] = []
     for hand in hands:
-        _cards = []
-        for card in hand:
-            _cards.append(str(card))
-        _hands.append(_cards)
-    return _hands
+        if isinstance(hand, poker.Card):
+            _cards.append(str(hand))
+        else:
+            _cards = []
+            for card in hand:
+                _cards.append(str(card))
+            _hands.append(_cards)
+    if _hands:
+        return _hands
+    return _cards
+
+
+def _to_number(value: Any) -> Union[float, int]:
+    try:
+        return int(value)
+    except ValueError:
+        pass
+    value = float(value)
+    return value
 
 
 def jsonify(config: Union[Dict[str, Any]]) -> Dict[str, Any]:
-    def to_number(value: Any) -> Union[float, int]:
-        try:
-            return int(value)
-        except ValueError:
-            pass
-        value = float(value)
-        return value
-
     _config: Dict[str, Any] = {}
     for key, value in config.items():
         if isinstance(value, dict):
@@ -154,21 +175,13 @@ def jsonify(config: Union[Dict[str, Any]]) -> Dict[str, Any]:
         elif isinstance(value, np.ndarray):
             _config[key] = value.tolist()
         elif isinstance(value, list):
-            community = key == "community_cards"
-            if community:
-                value = [value]
             cards = convert_hands(value)
-            if community:
-                _config[key] = cards[0]
-            else:
-                _config[key] = cards
-        elif value is None:
-            _config[key] = value
+            _config[key] = cards
         else:
             try:
-                _config[key] = to_number(value)
+                _config[key] = _to_number(value)
             except ValueError:
-                pass
+                _config[key] = value
     return _config
 
 
