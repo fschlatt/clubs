@@ -22,6 +22,7 @@ class GraphicViewer(viewer.PokerViewer):
         num_hole_cards: int,
         num_community_cards: int,
         port: int = 23948,
+        tries: int = 10,
         **kwargs,
     ):
         super(GraphicViewer, self).__init__(
@@ -37,20 +38,15 @@ class GraphicViewer(viewer.PokerViewer):
         self.process = multiprocessing.Process(target=self._run_flask, daemon=True)
         self.process.start()
 
-        tries = 0
-        while True:
-            if self.socket is not None:
-                break
+        for _ in range(tries):
             try:
                 self.socket = connection.Client(("localhost", self.port + 1))
                 print(f"clubs table openend at http://127.0.0.1:{self.port}")
+                break
             except ConnectionRefusedError:
-                tries += 1
-                if tries == 5:
-                    raise error.RenderInitializationError(
-                        "unable to reach flask process"
-                    )
                 time.sleep(1)
+        else:
+            raise error.RenderInitializationError("unable to reach flask process")
 
     def _run_flask(self):
         from gevent import monkey
