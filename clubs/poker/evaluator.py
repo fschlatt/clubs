@@ -2,6 +2,7 @@
 import functools
 import itertools
 import operator
+from timeit import default_timer as timer
 from typing import Dict, Iterator, List, Tuple
 
 from clubs import error
@@ -154,6 +155,20 @@ class Evaluator(object):
                 f" <= {self.table.max_rank}, got {hand_rank}"
             )
         )
+
+
+def speed_test(suits: int, ranks: int, cards_for_hand: int, n: int = 100000) -> float:
+    evaluator = Evaluator(suits, ranks, cards_for_hand)
+    deck = card.Deck(suits, ranks)
+
+    time = 0.0
+    for _ in range(n):
+        start = timer()
+        evaluator.evaluate(deck.draw(2), deck.draw(5))
+        time += timer() - start
+
+    avg = time / n
+    return avg
 
 
 class LookupTable:
@@ -451,7 +466,6 @@ class LookupTable:
         cards_for_hand: int, ranks: int, low_end_straight: bool
     ) -> List[int]:
         straight_flushes = []
-
         # start with best straight (flush)
         # for 5 card hand with 13 ranks: 0b1111100000000
         bin_num_str = "0b" + "1" * cards_for_hand + "0" * (13 - cards_for_hand)
@@ -500,7 +514,6 @@ class LookupTable:
             straight_flushes = self._gen_straight_flush(
                 cards_for_hand, ranks, low_end_straight
             )
-
         # dynamically generate all the other
         # flushes (including straight flushes)
         flushes = []
