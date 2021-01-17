@@ -378,8 +378,7 @@ class Dealer:
             self.pot = 0
             observation["action"] = -1
             observation["pot"] = 0
-            if any(payouts > 0):
-                self.stacks += payouts + self.pot_commit
+            self.stacks += payouts + self.pot_commit
         return observation, payouts, done
 
     def _render_config(self):
