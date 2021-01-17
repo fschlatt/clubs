@@ -494,8 +494,8 @@ class SVGPoker:
         street_commit_rectangle = RoundedRectangle(
             table.x, table.y, table.width, table.height
         )
-        street_commit_rectangle.width -= 200
-        street_commit_rectangle.height -= 160
+        street_commit_rectangle.width -= 225
+        street_commit_rectangle.height -= 185
 
         players = self.add_players(player, card, player_rectangle)
         street_commits = self.add_street_commits(street_commit, street_commit_rectangle)
