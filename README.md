@@ -93,6 +93,17 @@ clubs adopts the [Open AI gym](https://github.com/openai/gym) interface. See [cl
 
 The hand evaluator is heavily inspired by the [deuces](https://github.com/worldveil/deuces/) library. The basic logic is identical, but the evaluator and lookup table are generalized to work for any deck configuration with number of ranks <= 13 and number of suits <= 4 and poker hands with 5 or less cards. See the poker [README](./clubs/poker/README.md) for further details.
 
+Some speed was sacrificed for the sake of better usability. Nonetheless, the evaluator is still quite fast on modern machines (Intel(R) Core(TM) i5-8250U):
+
+```python
+>>> import clubs
+>>> avg_time = clubs.poker.evaluator.speed_test(4, 13, 5)
+>>> print(f"Average time per evaluation: {avg_time}")
+Average time per evaluation: 1.3986515504075214e-06
+>>> print(f"Evaluations per second = {1.0/avg_time}")
+Evaluations per second = 714974.362062254
+```
+
 ## Limitations
 
 Even though the library is designed to be as general as possible, it currently has a couple limitations:

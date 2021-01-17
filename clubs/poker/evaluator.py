@@ -158,6 +158,24 @@ class Evaluator(object):
 
 
 def speed_test(suits: int, ranks: int, cards_for_hand: int, n: int = 100000) -> float:
+    """Tests speed of evaluator
+
+    Parameters
+    ----------
+    suits : int
+        number of suits in deck
+    ranks : int
+        number of ranks in deck
+    cards_for_hand : int
+        number of cards used for valid poker hand
+    n : int, optional
+        number of iterations/hands to test, by default 100000
+
+    Returns
+    -------
+    float
+        average time per hand evaluation
+    """
     evaluator = Evaluator(suits, ranks, cards_for_hand)
     deck = card.Deck(suits, ranks)
 
