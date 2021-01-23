@@ -17,7 +17,7 @@ except NameError:
     __CLUBS_SETUP__ = False
 
 if __CLUBS_SETUP__:  # type: ignore
-    pass
+    pass  # pragma: no cover
 else:
     from . import configs, poker
     from .poker import Card, Dealer, Deck, Evaluator, LookupTable
