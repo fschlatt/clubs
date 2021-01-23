@@ -36,7 +36,3 @@ class TableResetError(Exception):
 
 class InvalidRenderModeError(Exception):
     pass
-
-
-class RenderInitializationError(Exception):
-    pass
