@@ -411,14 +411,14 @@ class Dealer:
 
         return config
 
-    def render(self, mode: str = "human", **kwargs):
+    def render(self, mode: str = "human", sleep: float = 0, **kwargs):
         """Renders poker table. Render mode options are: ascii,
-        asciimatics
+        asciimatics, human
 
         Parameters
         ----------
         mode : str, optional
-            toggle for using different renderer, by default 'ascii'
+            toggle for using different renderer, by default 'human'
         """
         viewer: Optional[Type[render.PokerViewer]] = None
         render_modes = ["ascii", "asciimatics", "human"]
