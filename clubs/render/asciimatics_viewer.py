@@ -5,7 +5,6 @@ try:
 except ImportError:
     ASCIIMATICS = False
 import threading
-import time
 
 from . import ascii_viewer
 
@@ -25,10 +24,10 @@ class AsciimaticsViewer(ascii_viewer.ASCIIViewer):
     """
 
     def __init__(
-        self, num_players: int, num_hole_cards: int, num_community_cards: int
+        self, num_players: int, num_hole_cards: int, num_community_cards: int, **kwargs
     ) -> None:
         super(AsciimaticsViewer, self).__init__(
-            num_players, num_hole_cards, num_community_cards
+            num_players, num_hole_cards, num_community_cards, **kwargs
         )
 
         if not ASCIIMATICS:
@@ -39,7 +38,7 @@ class AsciimaticsViewer(ascii_viewer.ASCIIViewer):
         thread = threading.Thread(target=self._render_loop, daemon=True)
         thread.start()
 
-    def render(self, config: dict, fps: int = 5, **kwargs) -> None:
+    def render(self, config: dict, sleep: float = 0) -> None:
         """Render ascii table representation based on the table
         configuration
 
@@ -69,14 +68,11 @@ class AsciimaticsViewer(ascii_viewer.ASCIIViewer):
         fps : int, optional
             frames per second for ascii animation, by default 5
         """
-
         self.string = self.parse_string(config)
-
         self.refresh.acquire()
         self.refresh.notify()
         self.refresh.release()
-        if fps:
-            time.sleep(1 / fps)
+        super().render(config, sleep)
 
     def _render_loop(self):
         with screen.ManagedScreen() as scr:
