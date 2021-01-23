@@ -9,7 +9,7 @@ from xml.etree import ElementTree as et
 
 import numpy as np
 
-from .. import error, poker
+from .. import poker
 from . import viewer
 
 Cards = TypeVar("Cards")
@@ -22,7 +22,6 @@ class GraphicViewer(viewer.PokerViewer):
         num_hole_cards: int,
         num_community_cards: int,
         port: int = 23948,
-        tries: int = 10,
         **kwargs,
     ):
         super(GraphicViewer, self).__init__(
@@ -38,15 +37,13 @@ class GraphicViewer(viewer.PokerViewer):
         self.process = multiprocessing.Process(target=self._run_flask, daemon=True)
         self.process.start()
 
-        for _ in range(tries):
+        while True:
             try:
                 self.socket = connection.Client(("localhost", self.port + 1))
                 print(f"clubs table openend at http://127.0.0.1:{self.port}")
                 break
             except ConnectionRefusedError:
-                time.sleep(1)
-        else:
-            raise error.RenderInitializationError("unable to reach flask process")
+                time.sleep(0.01)
 
     def _run_flask(self):
         from gevent import monkey
@@ -120,20 +117,18 @@ class GraphicViewer(viewer.PokerViewer):
                     'stacks': List[int] - list of stack sizes,
                 }
         """
-        del config["prev_action"]
         self.socket.send({"content": jsonify(config)})
-        if sleep:
-            time.sleep(sleep)
+        super().render(config, **kwargs)
 
 
 @overload
 def convert_hands(hands: List[poker.Card]) -> List[str]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
 def convert_hands(hands: List[List[poker.Card]]) -> List[List[str]]:
-    ...
+    ...  # pragma: no cover
 
 
 def convert_hands(
@@ -154,29 +149,18 @@ def convert_hands(
     return _cards
 
 
-def _to_number(value: Any) -> Union[float, int]:
-    try:
-        return int(value)
-    except ValueError:
-        pass
-    value = float(value)
-    return value
-
-
 def jsonify(config: Union[Dict[str, Any]]) -> Dict[str, Any]:
     _config: Dict[str, Any] = {}
     for key, value in config.items():
-        if isinstance(value, dict):
-            _config[key] = jsonify(value)
-        elif isinstance(value, np.ndarray):
+        if isinstance(value, np.ndarray):
             _config[key] = value.tolist()
         elif isinstance(value, list):
             cards = convert_hands(value)
             _config[key] = cards
         else:
             try:
-                _config[key] = _to_number(value)
-            except ValueError:
+                _config[key] = int(value)
+            except (ValueError, TypeError):
                 _config[key] = value
     return _config
 
@@ -253,8 +237,6 @@ class SVGElement:
     def __init__(self, name: str, svg: Optional[et.Element] = None) -> None:
         if svg is None:
             svg_path = os.path.join(self.SVGS_PATH, f"{name}.svg")
-            if not os.path.exists:
-                raise FileNotFoundError(f"SVG {name}.svg does not exist")
             with open(svg_path, "r") as file:
                 svg_str = file.read()
             self.svg = et.fromstring(svg_str)
@@ -270,11 +252,14 @@ class SVGElement:
     def __repr__(self) -> str:
         return f"SVGElement<name={self.name}, id={id(self)}>"
 
-    def get_sub_svg(self, name: str, attr_name: Optional[str] = None) -> "SVGElement":
+    @staticmethod
+    def _x_path(name: str, attr_name: Optional[str] = None) -> str:
         if attr_name is not None:
-            xpath = f".//*[@{attr_name}='{name}']"
-        else:
-            xpath = f".//{name}"
+            return f".//*[@{attr_name}='{name}']"
+        return f".//{name}"
+
+    def get_sub_svg(self, name: str, attr_name: Optional[str] = None) -> "SVGElement":
+        xpath = self._x_path(name, attr_name)
         svg = self.svg.find(xpath)
         if svg is None:
             raise KeyError(f"unable to find sub svg with arguments {name}")
@@ -283,10 +268,7 @@ class SVGElement:
     def get_sub_svgs(
         self, name: str, attr_name: Optional[str] = None
     ) -> List["SVGElement"]:
-        if attr_name is not None:
-            xpath = f".//*[@{attr_name}='{name}']"
-        else:
-            xpath = f".//{name}"
+        xpath = self._x_path(name, attr_name)
         svgs = self.svg.findall(xpath)
         if not svgs:
             raise KeyError(f"unable to find sub svg with arguments {name}")
@@ -526,8 +508,6 @@ class SVGPoker:
         new_player = player.copy()
         new_player.id = label
         card_width = card.width
-        if card_width is None:
-            card_width = 0
         cards = new_player.get_sub_svg("cards", "class")
         cards.id = f"cards-{label}"
 
@@ -640,6 +620,3 @@ class SVGPoker:
             new_street_commit.center(x=round(x), y=round(y))
             street_commits.append(new_street_commit)
         return street_commits
-
-    def generate(self):
-        return self.base_svg
