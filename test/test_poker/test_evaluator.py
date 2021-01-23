@@ -1,6 +1,7 @@
 import pytest
 
 from clubs import error, poker
+from clubs.poker import evaluator
 
 
 def test_init():
@@ -45,6 +46,11 @@ def test_hand_rank():
         evaluator.get_rank_class(-1)
     with pytest.raises(error.InvalidHandRankError):
         evaluator.get_rank_class(7463)
+
+
+def test_speed_test():
+    evaluator = poker.Evaluator(4, 13, 5)
+    assert evaluator.speed_test() < 1
 
 
 def test_1_card():
