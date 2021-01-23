@@ -442,7 +442,7 @@ class Dealer:
 
         config = self._render_config()
 
-        self.viewer.render(config, **kwargs)
+        self.viewer.render(config, sleep)
 
     def _all_agreed(self) -> bool:
         # not all agreed if not all players had chance to act

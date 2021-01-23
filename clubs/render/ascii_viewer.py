@@ -190,7 +190,7 @@ class ASCIIViewer(viewer.PokerViewer):
 
         return action_string, win_string
 
-    def render(self, config: dict, **kwargs) -> None:
+    def render(self, config: dict, sleep: float = 0.0) -> None:
         """Render ascii table representation based on the table
         configuration
 
@@ -218,7 +218,6 @@ class ASCIIViewer(viewer.PokerViewer):
                     'stacks': List[int] - list of stack sizes,
                 }
         """
-
         string = self.parse_string(config)
-
         print(string)
+        super().render(config, sleep)

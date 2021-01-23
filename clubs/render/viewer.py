@@ -1,3 +1,6 @@
+import time
+
+
 class PokerViewer:
     """Base class for renderer. Any renderer must subclass this renderer
     and implement the function render
@@ -19,7 +22,7 @@ class PokerViewer:
         self.num_hole_cards = num_hole_cards
         self.num_community_cards = num_community_cards
 
-    def render(self, config: dict, **kwargs) -> None:
+    def render(self, config: dict, sleep: float = 0) -> None:
         """Render the table based on the table configuration
 
         Parameters
@@ -45,5 +48,8 @@ class PokerViewer:
                                       player on current street,
                     'stacks': List[int] - list of stack sizes,
                 }
+        sleep : float, optional
+            sleep time after render, by default 0
         """
-        raise NotImplementedError
+        if sleep:
+            time.sleep(sleep)
