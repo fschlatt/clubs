@@ -139,7 +139,7 @@ class Evaluator(object):
         str
             hand rank string
         """
-        if hand_rank < 0 or hand_rank > self.table.max_rank:
+        if hand_rank < 0:
             raise error.InvalidHandRankError(
                 (
                     f"invalid hand rank, expected 0 <= hand_rank"
