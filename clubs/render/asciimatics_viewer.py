@@ -2,8 +2,8 @@ try:
     from asciimatics import screen
 
     ASCIIMATICS = True
-except ImportError:
-    ASCIIMATICS = False
+except ImportError:  # pragma: no cover
+    ASCIIMATICS = False  # pragma: no cover
 import threading
 
 from . import ascii_viewer
@@ -31,7 +31,9 @@ class AsciimaticsViewer(ascii_viewer.ASCIIViewer):
         )
 
         if not ASCIIMATICS:
-            raise ImportError("install asciimatics to use the asciimatics viewer")
+            raise ImportError(
+                "install asciimatics to use the asciimatics viewer"
+            )  # pragma: no cover
 
         self.string = ""
         self.refresh = threading.Condition()
