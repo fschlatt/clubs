@@ -9,7 +9,7 @@ from xml.etree import ElementTree as et
 
 import numpy as np
 
-from .. import poker
+from .. import error, poker
 from . import viewer
 
 Cards = TypeVar("Cards")
@@ -37,6 +37,7 @@ class GraphicViewer(viewer.PokerViewer):
         self.process = multiprocessing.Process(target=self._run_flask, daemon=True)
         self.process.start()
 
+        start = time.time()
         while True:
             try:
                 self.socket = connection.Client(("localhost", self.port + 1))
@@ -44,6 +45,10 @@ class GraphicViewer(viewer.PokerViewer):
                 break
             except ConnectionRefusedError:
                 time.sleep(0.01)
+                if time.time() - start > 10:
+                    raise error.RenderInitializationError(
+                        "unable to connect to flask process socket"
+                    )
 
     def _run_flask(self):
         from gevent import monkey
