@@ -1,3 +1,4 @@
 asciimatics>=1.0.0
 flask>=1.0.0
+flask-socketio>=4.6.0
 numpy>=1.16.6
