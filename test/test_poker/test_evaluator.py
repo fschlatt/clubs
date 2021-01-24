@@ -1,7 +1,6 @@
 import pytest
 
 from clubs import error, poker
-from clubs.poker import evaluator
 
 
 def test_init():
