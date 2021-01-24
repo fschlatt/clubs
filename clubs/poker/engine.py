@@ -1,5 +1,6 @@
 """Classes and functions for running poker games"""
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+import itertools
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 
 import numpy as np
 
@@ -561,25 +562,37 @@ class Dealer:
         done = self._done()
         return observation, payouts, done
 
-    def _eval_round(self) -> np.ndarray:
+    def _eval_hands(
+        self, hole_cards: List[List[poker.Card]], community_cards: List[poker.Card]
+    ) -> List[int]:
         # grab array of hand strength and pot commits
         worst_hand = self.evaluator.table.max_rank + 1
-        hand_list = []
-        payouts = np.zeros(self.num_players, dtype=int)
+        hand_strengths = []
         for player in range(self.num_players):
             # if not active hand strength set
             # to 1 worse than worst possible rank
-            hand_strength = worst_hand
-            if self.active[player]:
-                hand_strength = self.evaluator.evaluate(
-                    self.hole_cards[player], self.community_cards
-                )
-            hand_list.append([player, hand_strength, self.pot_commit[player]])
+            hand_strength = (
+                self.evaluator.evaluate(hole_cards[player], community_cards)
+                if self.active[player]
+                else worst_hand
+            )
+            hand_strengths.append(hand_strength)
+        return hand_strengths
+
+    def _eval_round(self) -> np.ndarray:
+        # grab array of hand strength and pot commits
+        hand_strengths = self._eval_hands(self.hole_cards, self.community_cards)
+        hand_list = [
+            [player_idx, hand_strength, self.pot_commit[player_idx]]
+            for player_idx, hand_strength in enumerate(hand_strengths)
+        ]
         hands = np.array(hand_list)
         # sort hands by hand strength and pot commits
         hands = hands[np.lexsort([hands[:, 2], hands[:, 1]])]
         pot = self.pot
         remainder = 0
+        payouts = np.zeros(self.num_players, dtype=int)
+        worst_hand = self.evaluator.table.max_rank + 1
         # iterate over hand strength and
         # pot commits from smallest to largest
         for idx, (_, strength, pot_commit) in enumerate(hands):
@@ -618,3 +631,32 @@ class Dealer:
             else:
                 self.street_option[action] = True
         self.action = action
+
+    def win_probabilities(self, n: int = 10000) -> np.ndarray:
+        hand_strengths = []
+        num_additional_comm_cards = sum(self.num_community_cards) - len(
+            self.community_cards
+        )
+        num_comm_combinations = poker.evaluator._ncr(
+            len(self.deck.cards), num_additional_comm_cards
+        )
+        if num_comm_combinations < 1000:
+            comm_combinations: Iterator[
+                Tuple[poker.Card, ...]
+            ] = itertools.combinations(self.deck.cards, num_additional_comm_cards)
+            n = num_comm_combinations
+        else:
+            comm_combinations = (
+                np.random.choice(
+                    self.deck.cards, num_additional_comm_cards, replace=False
+                )
+                for _ in range(n)
+            )
+        for additional_comm_cards in comm_combinations:
+            community_cards = self.community_cards + list(additional_comm_cards)
+            hand_strengths.append(self._eval_hands(self.hole_cards, community_cards))
+        best_hand = np.min(hand_strengths, axis=1)
+        hand_won_bool = best_hand.reshape(n, 1) == np.array(hand_strengths)
+        hands_won = hand_won_bool.sum(axis=0)
+        win_probs = hands_won / hands_won.sum()
+        return win_probs

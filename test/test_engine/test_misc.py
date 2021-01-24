@@ -136,3 +136,24 @@ def test_init_step():
 
     with pytest.raises(error.TableResetError):
         dealer.step(0)
+
+
+def test_win_probabilities():
+    config = clubs.configs.NO_LIMIT_HOLDEM_NINE_PLAYER
+    dealer = clubs.poker.Dealer(**config)
+    dealer.reset()
+
+    win_probs = dealer.win_probabilities(n=100)
+    assert pytest.approx(win_probs.sum(), 1)
+
+    dealer.step(-1)
+    dealer.step(2)
+    dealer.step(2)
+    dealer.step(2)
+    dealer.step(-1)
+    dealer.step(2)
+    dealer.step(2)
+    dealer.step(1)
+    dealer.step(0)
+    win_probs = dealer.win_probabilities()
+    assert all(win_probs[~dealer.active] == 0)
