@@ -1,3 +1,4 @@
+import http.client
 import time
 import urllib.error
 import urllib.request
@@ -79,7 +80,8 @@ def test_rectangle():
 
 def test_port():
     port = 6789
-    graphic.GraphicViewer(20, 2, 5, port=port)
+    viewer = graphic.GraphicViewer(20, 2, 5, port=port)
+    assert viewer.port == port
 
     start = time.time()
     response: Optional[http.client.HTTPResponse] = None
@@ -94,4 +96,3 @@ def test_port():
         time.sleep(1)
 
     assert response and response.status == 200
-
