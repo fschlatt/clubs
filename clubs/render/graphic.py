@@ -25,7 +25,6 @@ class GraphicViewer(viewer.PokerViewer):
         num_players: int,
         num_hole_cards: int,
         num_community_cards: int,
-        host: str = "127.0.0.1",
         port: int = 0,
         **kwargs,
     ):
