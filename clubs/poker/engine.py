@@ -346,7 +346,7 @@ class Dealer:
 
         self._collect_bet(bet)
 
-        self.history.append((self.action, int(bet), fold))
+        self.history.append((self.action, int(bet), bool(fold)))
 
         self.street_option[self.action] = True
         self._move_action()
