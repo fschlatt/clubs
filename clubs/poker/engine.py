@@ -445,6 +445,50 @@ class Dealer:
 
         self.viewer.render(config, sleep)
 
+    def win_probabilities(self, n: int = 10000) -> np.ndarray:
+        """Computes win probabilities for each player. If the possible remaining
+        community card combinations are below 1000, the combinations are exhaustively
+        checked, otherwise, n random samples are taken and averaged to compute an
+        estimate of the win probabilities.
+
+        Parameters
+        ----------
+        n : int, optional
+            max number of iterations to approximate win probabilities, by default 10000
+
+        Returns
+        -------
+        np.ndarray
+            win probabilities
+        """
+        hand_strengths = []
+        num_additional_comm_cards = sum(self.num_community_cards) - len(
+            self.community_cards
+        )
+        num_comm_combinations = poker.evaluator._ncr(
+            len(self.deck.cards), num_additional_comm_cards
+        )
+        if num_comm_combinations < 1000:
+            comm_combinations: Iterator[
+                Tuple[poker.Card, ...]
+            ] = itertools.combinations(self.deck.cards, num_additional_comm_cards)
+            n = num_comm_combinations
+        else:
+            comm_combinations = (
+                np.random.choice(
+                    self.deck.cards, num_additional_comm_cards, replace=False
+                )
+                for _ in range(n)
+            )
+        for additional_comm_cards in comm_combinations:
+            community_cards = self.community_cards + list(additional_comm_cards)
+            hand_strengths.append(self._eval_hands(self.hole_cards, community_cards))
+        best_hand = np.min(hand_strengths, axis=1)
+        hand_won_bool = best_hand.reshape(n, 1) == np.array(hand_strengths)
+        hands_won = hand_won_bool.sum(axis=0)
+        win_probs = hands_won / hands_won.sum()
+        return win_probs
+
     def _all_agreed(self) -> bool:
         # not all agreed if not all players had chance to act
         if not all(self.street_option):
@@ -631,32 +675,3 @@ class Dealer:
             else:
                 self.street_option[action] = True
         self.action = action
-
-    def win_probabilities(self, n: int = 10000) -> np.ndarray:
-        hand_strengths = []
-        num_additional_comm_cards = sum(self.num_community_cards) - len(
-            self.community_cards
-        )
-        num_comm_combinations = poker.evaluator._ncr(
-            len(self.deck.cards), num_additional_comm_cards
-        )
-        if num_comm_combinations < 1000:
-            comm_combinations: Iterator[
-                Tuple[poker.Card, ...]
-            ] = itertools.combinations(self.deck.cards, num_additional_comm_cards)
-            n = num_comm_combinations
-        else:
-            comm_combinations = (
-                np.random.choice(
-                    self.deck.cards, num_additional_comm_cards, replace=False
-                )
-                for _ in range(n)
-            )
-        for additional_comm_cards in comm_combinations:
-            community_cards = self.community_cards + list(additional_comm_cards)
-            hand_strengths.append(self._eval_hands(self.hole_cards, community_cards))
-        best_hand = np.min(hand_strengths, axis=1)
-        hand_won_bool = best_hand.reshape(n, 1) == np.array(hand_strengths)
-        hands_won = hand_won_bool.sum(axis=0)
-        win_probs = hands_won / hands_won.sum()
-        return win_probs
