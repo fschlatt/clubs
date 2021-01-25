@@ -25,6 +25,7 @@ class GraphicViewer(viewer.PokerViewer):
         num_players: int,
         num_hole_cards: int,
         num_community_cards: int,
+        host: str = "127.0.0.1",
         port: int = 0,
         **kwargs,
     ):
@@ -50,13 +51,13 @@ class GraphicViewer(viewer.PokerViewer):
 
         self._test_socket_conn()
         self._test_flask_conn()
-        print(f"clubs table openend at http://127.0.0.1:{self.port}")
+        print(f"clubs table openend at http://{self.host}:{self.port}")
 
     def _test_socket_conn(self):
         start = time.time()
         while True:
             try:
-                self.socket = connection.Client(("localhost", self.port + 1))
+                self.socket = connection.Client((self.host, self.port + 1))
                 break
             except ConnectionRefusedError:
                 time.sleep(0.01)
@@ -70,7 +71,7 @@ class GraphicViewer(viewer.PokerViewer):
         response: Optional[http.client.HTTPResponse] = None
         while True:
             try:
-                response = urllib.request.urlopen(f"http://localhost:{self.port}")
+                response = urllib.request.urlopen(f"http://{self.host}:{self.port}")
                 break
             except urllib.error.URLError:
                 time.sleep(0.01)
@@ -113,7 +114,7 @@ class GraphicViewer(viewer.PokerViewer):
 
         def listener():
             nonlocal config
-            socket = connection.Listener(("localhost", self.port + 1))
+            socket = connection.Listener((self.host, self.port + 1))
             conn = socket.accept()
             while True:
                 if conn.poll():
