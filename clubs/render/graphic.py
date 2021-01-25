@@ -1,8 +1,12 @@
 import copy
+import http.client
 import math
 import multiprocessing
 import os
+import socket
 import time
+import urllib.error
+import urllib.request
 from multiprocessing import connection
 from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union, overload
 from xml.etree import ElementTree as et
@@ -21,27 +25,39 @@ class GraphicViewer(viewer.PokerViewer):
         num_players: int,
         num_hole_cards: int,
         num_community_cards: int,
-        port: int = 23948,
+        host: str = "127.0.0.1",
+        port: int = 0,
         **kwargs,
     ):
         super(GraphicViewer, self).__init__(
             num_players, num_hole_cards, num_community_cards, **kwargs
         )
 
-        self.port = port
+        self.host = host
+        if port:
+            self.port = port
+        else:
+            tmp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            tmp_socket.bind(("", 0))
+            self.port = tmp_socket.getsockname()[1]
+            tmp_socket.close()
 
         self.svg_poker = SVGPoker(
             self.num_players, self.num_hole_cards, self.num_community_cards
         )
 
-        self.process = multiprocessing.Process(target=self._run_flask, daemon=True)
+        self.process = multiprocessing.Process(target=self._run_flask)
         self.process.start()
 
+        self._test_socket_conn()
+        self._test_flask_conn()
+        print(f"clubs table openend at http://127.0.0.1:{self.port}")
+
+    def _test_socket_conn(self):
         start = time.time()
         while True:
             try:
                 self.socket = connection.Client(("localhost", self.port + 1))
-                print(f"clubs table openend at http://127.0.0.1:{self.port}")
                 break
             except ConnectionRefusedError:
                 time.sleep(0.01)
@@ -49,6 +65,27 @@ class GraphicViewer(viewer.PokerViewer):
                     raise error.RenderInitializationError(
                         "unable to connect to flask process socket"
                     )
+
+    def _test_flask_conn(self):
+        start = time.time()
+        response: Optional[http.client.HTTPResponse] = None
+        while True:
+            try:
+                response = urllib.request.urlopen(f"http://localhost:{self.port}")
+                break
+            except urllib.error.URLError:
+                time.sleep(0.01)
+                if time.time() - start > 10:
+                    raise error.RenderInitializationError(
+                        "unable to connect to flask server"
+                    )
+
+        assert response and response.status == 200
+
+    def __del__(self):
+        self.socket.send({"content": "close"})
+        self.process.terminate()
+        self.process.join()
 
     def _run_flask(self):
         from gevent import monkey
@@ -95,7 +132,7 @@ class GraphicViewer(viewer.PokerViewer):
 
         socketio.run(app, port=self.port)
 
-    def render(self, config: dict, sleep: float = 0, **kwargs) -> None:
+    def render(self, config: dict, sleep: float = 0) -> None:
         """Render the table based on the table configuration
 
         Parameters
@@ -123,7 +160,7 @@ class GraphicViewer(viewer.PokerViewer):
                 }
         """
         self.socket.send({"content": jsonify(config)})
-        super().render(config, **kwargs)
+        super().render(config, sleep)
 
 
 @overload
