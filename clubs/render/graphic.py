@@ -59,7 +59,7 @@ class GraphicViewer(viewer.PokerViewer):
             try:
                 self.socket = connection.Client((self.host, self.port + 1))
                 break
-            except ConnectionRefusedError:
+            except (ConnectionRefusedError, OSError):
                 time.sleep(0.01)
                 if time.time() - start > 10:
                     raise error.RenderInitializationError(
