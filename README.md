@@ -107,7 +107,7 @@ Evaluations per second = 714974.362062254
 
 ## Visualize
 
-3 different render modes are available via `dealer.render()`. The default render mode uses a web front which gets exposed on localhost with the default port 23948.
+3 different render modes are available via `dealer.render()`. The default render mode uses a web front which gets exposed on localhost on a specified or random port.
 
 <div align="center">
 
