@@ -544,7 +544,7 @@ class Dealer:
         # if check/fold closest
         return 0
 
-    def _collect_multiple_bets(self, bets: List[int], street_commits: bool = True):
+    def _collect_multiple_bets(self, bets: np.ndarray, street_commits: bool = True):
         bets = np.roll(bets, self.action)
         bets = (self.stacks > 0) * self.active * bets
         if street_commits:
