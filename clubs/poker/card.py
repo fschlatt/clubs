@@ -1,7 +1,7 @@
 """Classes and functions to create and manipulate cards and lists of
 cards from a standard 52 card poker deck"""
 import random
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 from clubs import error
 
