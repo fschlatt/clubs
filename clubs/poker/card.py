@@ -258,49 +258,31 @@ class Deck:
             random.shuffle(self.cards)
         return self
 
-    def trick(
-        self, top_cards: Optional[Union[List[str], List[Card]]] = None,
-    ) -> "Deck":
+    def trick(self, top_cards: List[Card],) -> "Deck":
         """Tricks the deck by placing a fixed order of cards on the top
         of the deck and shuffling the rest. E.g.
-        deck.trick(['AS', '2H']) places the ace of spades and deuce of
-        hearts on the top of the deck. The order of tricked cards
-        persists even after untricking. That is, calling
-        deck.trick(...).untrick().trick() will keep the deck tricked
-        in the order given in the first trick call.
+        deck.trick([Card('AS'), Card('2H')]) places the ace of spades and deuce of
+        hearts on the top of the deck.
 
         Parameters
         ----------
         top_cards : Optional[List[Union[str, Card]]], optional
             list of cards to be placed on the top of the deck, by
             default None, by default None
-        shuffle : bool, optional
-            shuffles the deck after tricking, by default True
-
+        
         Returns
         -------
         Deck
             self
         """
-        if top_cards is None and not self._top_idcs:
-            self._tricked = False
-            return self.shuffle()
-        if top_cards:
-            cards = [
-                Card(top_card) if isinstance(top_card, str) else top_card
-                for top_card in top_cards
-            ]
-            self._top_idcs = [self.full_deck.index(top_card) for top_card in cards]
-            all_idcs = set(range(self.num_ranks * self.num_suits))
-            self._bottom_idcs = list(all_idcs.difference(set(self._top_idcs)))
+        self._top_idcs = [self.full_deck.index(top_card) for top_card in top_cards]
+        all_idcs = set(range(self.num_ranks * self.num_suits))
+        self._bottom_idcs = list(all_idcs.difference(set(self._top_idcs)))
         self._tricked = True
-        return self.shuffle()
+        return self
 
     def untrick(self) -> "Deck":
-        """Removes the tricked cards from the top of the deck. The order
-        of tricked cards persists even after untricking. That is,
-        calling deck.trick(...).untrick().trick() will keep the deck
-        tricked in the order given in the first trick call.
+        """Removes the tricked cards from the top of the deck.
 
         Returns
         -------
@@ -308,4 +290,6 @@ class Deck:
             self
         """
         self._tricked = False
+        self._top_idcs = []
+        self._bottom_idcs = []
         return self
