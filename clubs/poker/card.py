@@ -271,7 +271,7 @@ class Deck:
         top_cards : Optional[List[Union[str, Card]]], optional
             list of cards to be placed on the top of the deck, by
             default None, by default None
-        
+
         Returns
         -------
         Deck
