@@ -72,29 +72,30 @@ class Dealer:
         order=None, hands are ranked by rarity. by default None
 
     Examples
-    ----------
-    1-2 Heads Up No Limit Texas Hold'em:
+    --------
 
-        Dealer(num_players=2, num_streets=4, blinds=[1, 2], antes=0,
-               raise_sizes=float('inf'), num_raises=float('inf'),
-               num_suits=4, num_ranks=13, num_hole_cards=2,
-               mandatory_num_hole_cards=0, start_stack=200)
-
-    1-2 6 Player PLO
-
-        Dealer(num_players=6, num_streets=4, blinds=[0, 1, 2, 0, 0, 0],
-               antes=0, raise_sizes='pot', num_raises=float('inf'),
-               num_suits=4, num_ranks=13, num_hole_cards=4,
-               mandatory_num_hole_cards=2, start_stack=200)
-
-    1-2 Heads Up No Limit Short Deck
-
-        Dealer(num_players=2, num_streets=4, blinds=[1, 2], antes=0,
-               raise_sizes=float('inf'), num_raises=float('inf'),
-               num_suits=4, num_ranks=9, num_hole_cards=2,
-               mandatory_num_hole_cards=0, start_stack=200,
-               order=['sf', 'fk', 'fl', 'fh', 'st',
-                      'tk', 'tp', 'pa', 'hc'])
+        >>> Dealer( # 1-2 Heads Up No Limit Texas Hold'em
+        ...     num_players=2, num_streets=4, blinds=[1, 2], antes=0,
+        ...     raise_sizes=float('inf'), num_raises=float('inf'),
+        ...     num_suits=4, num_ranks=13, num_hole_cards=2,
+        ...     mandatory_num_hole_cards=0, start_stack=200
+        ... )
+        >>> Dealer( # 1-2 6 Player PLO
+        ...     num_players=6, num_streets=4, blinds=[0, 1, 2, 0, 0, 0],
+        ...     antes=0, raise_sizes='pot', num_raises=float('inf'),
+        ...     num_suits=4, num_ranks=13, num_hole_cards=4,
+        ...     mandatory_num_hole_cards=2, start_stack=200
+        ... )
+        >>> Dealer( # 1-2 Heads Up No Limit Short Deck
+        ...     num_players=2, num_streets=4, blinds=[1, 2], antes=0,
+        ...     raise_sizes=float('inf'), num_raises=float('inf'),
+        ...     num_suits=4, num_ranks=9, num_hole_cards=2,
+        ...     mandatory_num_hole_cards=0, start_stack=200,
+        ...     order=[
+        ...         'sf', 'fk', 'fl', 'fh', 'st',
+        ...         'tk', 'tp', 'pa', 'hc'
+        ...         ]
+        ... )
     """
 
     def __init__(
@@ -230,21 +231,24 @@ class Dealer:
         Returns
         -------
         Dict
-            observation dictionary containing following info
+            observation dictionary
 
-                {
-                    active: position of active player
-                    button: position of button
-                    call: number of chips needed to call
-                    community_cards: shared community cards
-                    hole_cards: hole cards for every player
-                    max_raise: maximum raise size
-                    min_raise: minimum raise size
-                    pot: number of chips in the pot
-                    stacks: stack size for every player
-                    street_commits: number of chips commited by every
-                                    player on this street
-                }
+        Examples
+        --------
+
+        >>> dealer = Dealer(**configs.LEDUC_TWO_PLAYER)
+        >>> dealer.reset()
+        ... {'action': 0,
+        ...  'active': array([ True,  True]),
+        ...  'button': 2,
+        ...  'call': 0,
+        ...  'community_cards': [],
+        ...  'hole_cards': [['K♠'], ['K♥']],
+        ...  'max_raise': 2,
+        ...  'min_raise': 2,
+        ...  'pot': 2,
+        ...  'stacks': array([8, 8], dtype=int32),
+        ...  'street_commits': array([0, 0], dtype=int32)}
         """
         if reset_stacks:
             self.active.fill(1)
@@ -303,24 +307,30 @@ class Dealer:
         Tuple[Dict, np.ndarray, np.ndarray]
             observation dictionary containing following info
 
-                {
-                    active: position of active player
-                    button: position of button
-                    call: number of chips needed to call
-                    community_cards: shared community cards
-                    hole_cards: hole cards for every player
-                    max_raise: maximum raise size
-                    min_raise: minimum raise size
-                    pot: number of chips in the pot
-                    stacks: stack size for every player
-                    street_commits: number of chips commited by every
-                                    player on this street
-                }
-
             payouts for every player
 
             bool array containing value for every player if that player
             is still involved in round
+
+        Examples
+        --------
+
+        >>> dealer = Dealer(**configs.LEDUC_TWO_PLAYER)
+        >>> obs = dealer.reset()
+        >>> dealer.step(0)
+        ... ({'action': 0,
+        ...  'active': array([ True,  True]),
+        ...  'button': 1,
+        ...  'call': 0,
+        ...  'community_cards': [],
+        ...  'hole_cards': [['Q♠'], ['A♥']],
+        ...  'max_raise': 2,
+        ...  'min_raise': 2,
+        ...  'pot': 2,
+        ...  'stacks': array([9, 9], dtype=int32),
+        ...  'street_commits': array([0, 0], dtype=int32)},
+        ...  array([0, 0], dtype=int32),
+        ...  array([False, False]))
         """
         if self.action == -1:
             if any(self.active):

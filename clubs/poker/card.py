@@ -9,38 +9,38 @@ STR_RANKS: str = "23456789TJQKA"
 INT_RANKS: List[int] = list(range(13))
 PRIMES: List[int] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
 
-# conversion string to int
 CHAR_RANK_TO_INT_RANK: Dict[str, int] = dict(zip(list(STR_RANKS), INT_RANKS))
 CHAR_SUIT_TO_INT_SUIT: Dict[str, int] = {
-    "S": 1,  # spades
-    "H": 2,  # hearts
-    "D": 4,  # diamonds
-    "C": 8,  # clubs
+    "S": 1,
+    "H": 2,
+    "D": 4,
+    "C": 8,
 }
 
-# pretty suits
 PRETTY_SUITS: Dict[int, str] = {
-    1: chr(9824),  # spades
-    2: chr(9829),  # hearts
-    4: chr(9830),  # diamonds
-    8: chr(9827),  # clubs
+    1: chr(9824),
+    2: chr(9829),
+    4: chr(9830),
+    8: chr(9827),
 }
 
 
 class Card:
     """Cards are represented as 32-bit integers. Most of the bits are used
-    and have a specific meaning, check the poker README for details:
+    and have a specific meaning.
 
-                  bitrank  suit rank   prime
-        +--------+--------+--------+--------+
-        |xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
-        +--------+--------+--------+--------+
+        +----------------+----+----+--------+
+        |     bitrank    |suit|rank|   prime|
+        +----------------+----+----+--------+
+        |xxxbbbbbbbbbbbbb|cdhs|rrrr|xxpppppp|
+        +----------------+----+----+--------+
 
         1) p = prime number of rank (deuce=2,trey=3,four=5,...,ace=41)
         2) r = rank of card (deuce=0,trey=1,four=2,five=3,...,ace=12)
         3) cdhs = suit of card (bit turned on based on suit of card)
         4) b = bit turned on depending on rank of card
         5) x = unused
+
 
     Parameters
     ----------
@@ -51,7 +51,9 @@ class Card:
 
     Examples
     ------
-    Card('TC'), Card('7H'), Card('ad')...
+    >>> card = Card('TC')
+    >>> card = Card('7H')
+    >>> card = Card('ad')
     """
 
     def __init__(self, string: str) -> None:
