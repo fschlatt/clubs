@@ -25,10 +25,8 @@ def test_draw():
 def test_trick():
     random.seed(42)
 
-    deck = poker.Deck(4, 13)
-    assert deck.cards[0] != deck.trick().cards[0]
-
-    deck = poker.Deck(4, 13).trick(["Ah", "2s"])
+    deck = poker.Deck(4, 13).trick([poker.Card("Ah"), poker.Card("2s")])
+    deck.shuffle()
 
     cards = deck.draw(2)
     assert cards[0] == poker.Card("Ah")
