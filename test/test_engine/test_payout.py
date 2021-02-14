@@ -20,6 +20,7 @@ def test_split_pot():
     ]
     comm_cards = ["4d", "5h", "7c", "Ac", "Kh"]
     top_cards = [card for hand in hands for card in hand] + comm_cards
+    top_cards = [clubs.Card(card) for card in top_cards]
     dealer.deck = dealer.deck.trick(top_cards)
 
     obs = dealer.reset(reset_button=True, reset_stacks=True)
@@ -87,6 +88,7 @@ def test_all_in():
     ]
     comm_cards = ["4d", "5h", "7c", "Ac", "Kh"]
     top_cards = [card for hand in hands for card in hand] + comm_cards
+    top_cards = [clubs.Card(card) for card in top_cards]
     dealer.deck = dealer.deck.trick(top_cards)
 
     dealer.stacks[0] = dealer.stacks[0] - 180
@@ -147,6 +149,7 @@ def test_all_in_split_pot():
     ]
     comm_cards = ["4d", "5h", "7c", "Ac", "Kh"]
     top_cards = [card for hand in hands for card in hand] + comm_cards
+    top_cards = [clubs.Card(card) for card in top_cards]
     dealer.deck = dealer.deck.trick(top_cards)
 
     dealer.stacks[0] = dealer.stacks[0] - 180

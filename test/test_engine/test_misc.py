@@ -10,7 +10,9 @@ def test_game():
 
     dealer = clubs.poker.Dealer(**config)
 
-    dealer.deck = dealer.deck.trick(["Qs", "Ks", "Qh"])
+    dealer.deck = dealer.deck.trick(
+        [clubs.Card("Qs"), clubs.Card("Ks"), clubs.Card("Qh")]
+    )
 
     obs = dealer.reset(reset_button=True, reset_stacks=True)
 
