@@ -3,11 +3,41 @@ import functools
 import itertools
 import operator
 from timeit import default_timer as timer
-from typing import Dict, Iterator, List, Tuple
+from typing import DefaultDict, Dict, Iterator, List, Tuple, Union
+
+import numpy as np
 
 from clubs import error
 
 from . import card
+
+
+NestedCardList = Union[List[card.Card], List["NestedCardList"]]
+
+
+def _nested_shape(nested_list: NestedCardList) -> Tuple[int, ...]:
+    depth_shape_dict: Dict[int, List[int]] = DefaultDict(list)
+
+    def _recurse(nested_list: NestedCardList, depth: int = 0):
+        if isinstance(nested_list, list):
+            depth_shape_dict[depth].append(len(nested_list))
+            for sub_list in nested_list:
+                if isinstance(sub_list, list):
+                    _recurse(sub_list, depth + 1)
+
+    _recurse(nested_list)
+
+    shape = [0] * len(depth_shape_dict)
+    for depth, shape_list in depth_shape_dict.items():
+        if shape_list[1:] != shape_list[:-1]:
+            raise error.CardListMisshapeError(
+                f"unable to create card array, "
+                f"expected number of cards to be equal along all dimensions, "
+                f"got {shape_list} at depth {depth}"
+            )
+        shape[depth] = shape_list[0]
+
+    return tuple(shape)
 
 
 class Evaluator(object):
@@ -308,15 +338,18 @@ class LookupTable:
         self.ranked_hands = ranked_hands
 
         # create lookup tables
-        self.suited_lookup: Dict[int, int] = {}
-        self.unsuited_lookup: Dict[int, int] = {}
-        self._flushes(ranks, cards_for_hand, low_end_straight)
-        self._multiples(ranks, cards_for_hand)
+        suited_lookup, unsuited_lookup = self._flushes(
+            ranks, cards_for_hand, low_end_straight
+        )
+        unsuited_lookup = self._multiples(ranks, cards_for_hand, unsuited_lookup)
 
         # if suited hands aren't relevant set the suited
         # lookup table equal to the unsuited table
         if not self.hand_dict["flush"]["cumulative unsuited"]:
-            self.suited_lookup = self.unsuited_lookup
+            suited_lookup = unsuited_lookup
+
+        self.suited_lookup = suited_lookup
+        self.unsuited_lookup = unsuited_lookup
 
     def lookup(self, cards: List[card.Card]) -> int:
         """Return unique hand rank for list of cards
@@ -334,9 +367,9 @@ class LookupTable:
         # if all flush bits equal then use flush lookup
         if functools.reduce(operator.and_, cards, 0xF000):
             hand_or = functools.reduce(operator.or_, cards) >> 16
-            prime = card.prime_product_from_rankbits(hand_or)
+            prime = _prime_product_from_rank_bits(hand_or)
             return self.suited_lookup[prime]
-        prime = card.prime_product_from_hand(cards)
+        prime = _prime_product_from_hand(cards)
         return self.unsuited_lookup[prime]
 
     @staticmethod
@@ -515,7 +548,9 @@ class LookupTable:
         flushes.reverse()
         return flushes
 
-    def _flushes(self, ranks: int, cards_for_hand: int, low_end_straight: bool) -> None:
+    def _flushes(
+        self, ranks: int, cards_for_hand: int, low_end_straight: bool
+    ) -> Tuple[Dict[int, int], Dict[int, int]]:
         straight_flushes = []
         if (
             self.hand_dict["straight flush"]["cumulative unsuited"]
@@ -533,31 +568,39 @@ class LookupTable:
         ):
             flushes = self._gen_flush(cards_for_hand, ranks, straight_flushes)
 
-        def add_to_table(rank_string: str, rank_bits: List[int], suited: bool) -> None:
+        def add_to_dict(
+            rank_string: str, rank_bits: List[int], lookup: Dict[int, int],
+        ) -> Dict[int, int]:
             if not self.hand_dict[rank_string]["cumulative unsuited"]:
-                return
+                return lookup
             num_ranks = len(rank_bits)
             assert num_ranks == self.hand_dict[rank_string]["unsuited"]
             hand_rank = self._get_rank(rank_string)
-            for rank_bit in rank_bits:
-                prime_product = card.prime_product_from_rankbits(rank_bit)
-                if suited:
-                    self.suited_lookup[prime_product] = hand_rank
-                else:
-                    self.unsuited_lookup[prime_product] = hand_rank
+            for _rank_bits in rank_bits:
+                prime_product = _prime_product_from_rank_bits(_rank_bits)
+                lookup[prime_product] = hand_rank
                 hand_rank += 1
+            return lookup
 
-        add_to_table("straight flush", straight_flushes, True)
-        add_to_table("flush", flushes, True)
-        add_to_table("straight", straight_flushes, False)
-        add_to_table("high card", flushes, False)
+        suited_lookup: Dict[int, int] = {}
+        unsuited_lookup: Dict[int, int] = {}
+        suited_lookup = add_to_dict("straight flush", straight_flushes, suited_lookup)
+        suited_lookup = add_to_dict("flush", flushes, suited_lookup)
+        unsuited_lookup = add_to_dict("straight", straight_flushes, unsuited_lookup)
+        unsuited_lookup = add_to_dict("high card", flushes, unsuited_lookup)
 
-    def _multiples(self, ranks: int, cards_for_hand: int) -> None:
-        def add_to_table(rank_string: str, multiples: List[int]) -> None:
+        return suited_lookup, unsuited_lookup
+
+    def _multiples(
+        self, ranks: int, cards_for_hand: int, unsuited_lookup: Dict[int, int],
+    ) -> Dict[int, int]:
+        def add_to_dict(
+            rank_string: str, multiples: List[int], unsuited_lookup: Dict[int, int],
+        ) -> Dict[int, int]:
             # inverse ranks, A - 2
             backwards_ranks = list(range(13 - 1, 13 - 1 - ranks, -1))
             if not self.hand_dict[rank_string]["cumulative unsuited"]:
-                return
+                return unsuited_lookup
             # get cumulative hand rank
             hand_rank = self._get_rank(rank_string)
             # if different multiples (e.g. full house) order of
@@ -591,20 +634,24 @@ class LookupTable:
                         product = base_product
                         for kicker in kickers_tuple:
                             product *= card.PRIMES[kicker]
-                        self.unsuited_lookup[product] = hand_rank
+                        unsuited_lookup[product] = hand_rank
                         hand_rank += 1
                 else:
-                    self.unsuited_lookup[base_product] = hand_rank
+                    unsuited_lookup[base_product] = hand_rank
                     hand_rank += 1
             # check hand rank is equal to number of iterated ranks
             num_ranks = hand_rank - self._get_rank(rank_string)
             assert num_ranks == self.hand_dict[rank_string]["unsuited"]
 
-        add_to_table("four of a kind", [4])
-        add_to_table("full house", [3, 2])
-        add_to_table("three of a kind", [3])
-        add_to_table("two pair", [2, 2])
-        add_to_table("pair", [2])
+            return unsuited_lookup
+
+        add_to_dict("four of a kind", [4], unsuited_lookup)
+        add_to_dict("full house", [3, 2], unsuited_lookup)
+        add_to_dict("three of a kind", [3], unsuited_lookup)
+        add_to_dict("two pair", [2, 2], unsuited_lookup)
+        add_to_dict("pair", [2], unsuited_lookup)
+
+        return unsuited_lookup
 
     def _get_rank(self, hand: str) -> int:
         rank = self.hand_dict[hand]["rank"]
@@ -612,6 +659,22 @@ class LookupTable:
             return 0
         better_hand = self.ranked_hands[rank - 1]
         return self.hand_dict[better_hand]["cumulative unsuited"] + 1
+
+
+def _prime_product_from_rank_bits(rankbits: int) -> int:
+    product = 1
+    for i in card.INT_RANKS:
+        # if the ith bit is set
+        if rankbits & (1 << i):
+            product *= card.PRIMES[i]
+    return product
+
+
+def _prime_product_from_hand(cards: List[card.Card]) -> int:
+    product = 1
+    for _card in cards:
+        product *= _card & 0xFF
+    return product
 
 
 def _lexographic_next_bit(bits: int) -> Iterator[int]:

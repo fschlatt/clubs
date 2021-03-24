@@ -127,51 +127,6 @@ class Card:
         raise NotImplementedError("only comparisons of two cards allowed")
 
 
-def prime_product_from_rankbits(rankbits: int) -> int:
-    """Computes prime product from rankbits of cards, primarily used
-    for evaluating flushes and straights. Expects 13 bit integer
-    with bits of the cards in the hand flipped.
-
-    Parameters
-    ----------
-    rankbits : int
-        13 bit integer with flipped rank bits
-
-    Returns
-    -------
-    int
-        prime product of rank cards
-    """
-
-    product = 1
-    for i in INT_RANKS:
-        # if the ith bit is set
-        if rankbits & (1 << i):
-            product *= PRIMES[i]
-    return product
-
-
-def prime_product_from_hand(cards: List[Card]) -> int:
-    """Computes unique prime product for a list of cards. Used for
-    evaluating hands
-
-    Parameters
-    ----------
-    cards : List[Card]
-        list of cards
-
-    Returns
-    -------
-    int
-        prime product of cards
-    """
-
-    product = 1
-    for card in cards:
-        product *= card & 0xFF
-    return product
-
-
 class Deck:
     """A deck contains at most 52 cards, 13 ranks 4 suits. Any "subdeck"
     of the standard 52 card deck is valid, i.e. the number of suits
