@@ -176,7 +176,7 @@ class Dealer:
 
         # dealer
         self.action = -1
-        self.active = np.zeros(self.num_players, dtype=np.uint8)
+        self.active = np.zeros(self.num_players, dtype=bool)
         self.button = 0
         self.community_cards: List[poker.Card] = []
         self.deck = poker.Deck(self.num_suits, self.num_ranks)
@@ -196,7 +196,7 @@ class Dealer:
         self.stacks = np.full(self.num_players, self.start_stack, dtype=np.int32)
         self.street = 0
         self.street_commits = np.zeros(self.num_players, dtype=np.int32)
-        self.street_option = np.zeros(self.num_players, dtype=np.uint8)
+        self.street_option = np.zeros(self.num_players, dtype=bool)
         self.street_raises = 0
 
         # render
@@ -289,7 +289,7 @@ class Dealer:
 
         return self._observation()
 
-    def step(self, bet: float) -> Tuple[Dict, np.ndarray, np.ndarray]:
+    def step(self, bet: float) -> Tuple[Dict, List[int], List[int]]:
         """Advances poker game to next player. If the bet is 0, it is
         either considered a check or fold, depending on the previous
         action. The given bet is always rounded to the closest valid bet
@@ -304,7 +304,7 @@ class Dealer:
 
         Returns
         -------
-        Tuple[Dict, np.ndarray, np.ndarray]
+        Tuple[Dict, List[int], List[int]]
             observation dictionary containing following info
 
             payouts for every player
@@ -380,7 +380,7 @@ class Dealer:
                 if not all_all_in:
                     break
             self.street_commits.fill(0)
-            self.street_option = np.logical_not(self.active).astype(np.uint8)
+            self.street_option = np.logical_not(self.active).astype(bool)
             self.street_raises = 0
 
         observation, payouts, done = self._output()
@@ -455,7 +455,7 @@ class Dealer:
 
         self.viewer.render(config, sleep)
 
-    def win_probabilities(self, n: int = 10000) -> np.ndarray:
+    def win_probabilities(self, n: int = 10000) -> List[float]:
         """Computes win probabilities for each player. If the possible remaining
         community card combinations are below 1000, the combinations are exhaustively
         checked, otherwise, n random samples are taken and averaged to compute an
@@ -468,7 +468,7 @@ class Dealer:
 
         Returns
         -------
-        np.ndarray
+        List[float]
             win probabilities
         """
         hand_strengths = []
@@ -554,14 +554,14 @@ class Dealer:
         # if check/fold closest
         return 0
 
-    def _collect_multiple_bets(self, bets: np.ndarray, street_commits: bool = True):
-        bets = np.roll(bets, self.action)
-        bets = (self.stacks > 0) * self.active * bets
+    def _collect_multiple_bets(self, bets: List[int], street_commits: bool = True):
+        bets_arr = np.roll(bets, self.action)
+        bets_arr = (self.stacks > 0) * self.active * bets_arr
         if street_commits:
-            self.street_commits += bets
-        self.pot_commit += bets
-        self.pot += sum(bets)
-        self.stacks -= bets
+            self.street_commits += bets_arr
+        self.pot_commit += bets_arr
+        self.pot += sum(bets_arr)
+        self.stacks -= bets_arr
 
     def _collect_bet(self, bet: int):
         # bet only as large as stack size
@@ -572,12 +572,12 @@ class Dealer:
         self.street_commits[self.action] += bet
         self.stacks[self.action] -= bet
 
-    def _done(self) -> np.ndarray:
+    def _done(self) -> List[int]:
         if self.street >= self.num_streets or sum(self.active) <= 1:
             # end game
             out = np.full(self.num_players, 1)
             return out
-        return np.logical_not(self.active)
+        return np.logical_not(self.active).tolist()
 
     def _observation(self) -> Dict:
         if all(self._done()):
@@ -599,7 +599,7 @@ class Dealer:
         }
         return observation
 
-    def _payouts(self) -> np.ndarray:
+    def _payouts(self) -> List[int]:
         # players that have folded lose their bets
         payouts = -1 * self.pot_commit * np.logical_not(self.active)
         if sum(self.active) == 1:
@@ -607,10 +607,10 @@ class Dealer:
         # if last street played and still multiple players active
         elif self.street >= self.num_streets:
             payouts = self._eval_round()
-            payouts -= self.pot_commit
+            payouts = [payout - self.pot_commit for payout in payouts]
         return payouts
 
-    def _output(self) -> Tuple[Dict, np.ndarray, np.ndarray]:
+    def _output(self) -> Tuple[Dict, List[int], List[int]]:
         observation = self._observation()
         payouts = self._payouts()
         done = self._done()
@@ -633,7 +633,7 @@ class Dealer:
             hand_strengths.append(hand_strength)
         return hand_strengths
 
-    def _eval_round(self) -> np.ndarray:
+    def _eval_round(self) -> List[int]:
         # grab array of hand strength and pot commits
         hand_strengths = self._eval_hands(self.hole_cards, self.community_cards)
         hand_list = [
@@ -674,7 +674,7 @@ class Dealer:
             worst_idx = np.argmin(button_shifted_players)
             worst_pos = involved_players[worst_idx]
             payouts[worst_pos] += remainder
-        return payouts
+        return payouts.tolist()
 
     def _move_action(self):
         action = self.action
