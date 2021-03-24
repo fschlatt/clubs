@@ -86,15 +86,15 @@ class Card:
         rank = rank_int << 8
 
         self._int: int = bitrank | suit | rank | rank_prime
+        self._bin_str: str = f"{self._int:b}"
+        self.suit = PRETTY_SUITS[suit_int]
+        self.rank = STR_RANKS[rank_int]
+
+    def __int__(self) -> int:
+        return self._int
 
     def __str__(self) -> str:
-        suit_int = (self._int >> 12) & 0xF
-        rank_int = (self._int >> 8) & 0xF
-
-        suit = PRETTY_SUITS[suit_int]
-        rank = STR_RANKS[rank_int]
-
-        return f"{rank}{suit}"
+        return f"{self.rank}{self.suit}"
 
     def __repr__(self) -> str:
         return f"Card ({id(self)}): {str(self)}"
@@ -173,6 +173,16 @@ class Deck:
     def __repr__(self) -> str:
         return f"Deck ({id(self)}): {str(self)}"
 
+    def __len__(self) -> int:
+        """Length of deck
+
+        Returns
+        -------
+        int
+            number of remaining cards
+        """
+        return len(self.cards)
+
     def draw(self, n: int = 1) -> List[Card]:
         """Draws cards from the top of the deck. If the number of cards
         to draw exceeds the number of cards in the deck, all cards
@@ -215,7 +225,7 @@ class Deck:
             random.shuffle(self.cards)
         return self
 
-    def trick(self, top_cards: List[Card],) -> "Deck":
+    def trick(self, top_cards: List[Card]) -> "Deck":
         """Tricks the deck by placing a fixed order of cards on the top
         of the deck and shuffling the rest. E.g.
         deck.trick([Card('AS'), Card('2H')]) places the ace of spades and deuce of
