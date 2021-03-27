@@ -91,9 +91,15 @@ def test_too_few_players():
     _ = dealer.reset(reset_button=True, reset_stacks=True)
 
     bet = 200
+    obs = {}
+    payouts = []
+    done = []
     for _ in range(6):
         obs, payouts, done = dealer.step(bet)
 
+    assert obs
+    assert payouts
+    assert done
     assert all(done)
     assert obs["pot"] == 0
     test_payouts = [-200, -200, -200, -200, -200, 1000]

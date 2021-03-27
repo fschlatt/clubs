@@ -40,7 +40,7 @@ def test_limit_bet_size():
     obs, *_ = dealer.step(bet)
     assert sum(obs["street_commits"]) == obs["pot"]
     assert obs["pot"] == 30
-    assert not obs["active"].all()
+    assert not all(obs["active"])
 
 
 def test_all_in_bet_size():
