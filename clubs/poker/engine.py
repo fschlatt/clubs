@@ -176,7 +176,7 @@ class Dealer:
 
         # dealer
         self.action = -1
-        self.active = np.zeros(self.num_players, dtype=bool)
+        self.active: np.ndarray = np.zeros(self.num_players, dtype=bool)
         self.button = 0
         self.community_cards: List[poker.Card] = []
         self.deck = poker.Deck(self.num_suits, self.num_ranks)
@@ -193,10 +193,12 @@ class Dealer:
         self.largest_raise = 0
         self.pot = 0
         self.pot_commit = np.zeros(self.num_players, dtype=np.int32)
-        self.stacks = np.full(self.num_players, self.start_stack, dtype=np.int32)
+        self.stacks: np.ndarray = np.full(
+            self.num_players, self.start_stack, dtype=np.int32
+        )
         self.street = 0
-        self.street_commits = np.zeros(self.num_players, dtype=np.int32)
-        self.street_option = np.zeros(self.num_players, dtype=bool)
+        self.street_commits: np.ndarray = np.zeros(self.num_players, dtype=np.int32)
+        self.street_option: np.ndarray = np.zeros(self.num_players, dtype=bool)
         self.street_raises = 0
 
         # render
@@ -255,7 +257,7 @@ class Dealer:
             self.stacks = np.full(self.num_players, self.start_stack)
         else:
             self.active = self.stacks > 0
-            if sum(self.active) <= 1:
+            if self.active.sum() <= 1:
                 raise error.TooFewActivePlayersError(
                     "not enough players have chips, set reset_stacks=True"
                 )
@@ -371,7 +373,7 @@ class Dealer:
                 self.street += 1
                 full_streets = self.street >= self.num_streets
                 all_in = self.active * (self.stacks == 0)
-                all_all_in = sum(self.active) - sum(all_in) <= 1
+                all_all_in = self.active.sum() - all_in.sum() <= 1
                 if full_streets:
                     break
                 self.community_cards += self.deck.draw(
@@ -560,7 +562,7 @@ class Dealer:
         if street_commits:
             self.street_commits += bets_arr
         self.pot_commit += bets_arr
-        self.pot += sum(bets_arr)
+        self.pot += bets_arr.sum()
         self.stacks -= bets_arr
 
     def _collect_bet(self, bet: int):
@@ -573,10 +575,10 @@ class Dealer:
         self.stacks[self.action] -= bet
 
     def _done(self) -> List[int]:
-        if self.street >= self.num_streets or sum(self.active) <= 1:
+        if self.street >= self.num_streets or self.active.sum() <= 1:
             # end game
             out = np.full(self.num_players, 1)
-            return out
+            return out.tolist()
         return np.logical_not(self.active).tolist()
 
     def _observation(self) -> Dict:
@@ -586,7 +588,7 @@ class Dealer:
             call, min_raise, max_raise = self._bet_sizes()
         observation: dict = {
             "action": self.action,
-            "active": self.active,
+            "active": self.active.tolist(),
             "button": self.button,
             "call": call,
             "community_cards": [str(card) for card in self.community_cards],
@@ -602,13 +604,13 @@ class Dealer:
     def _payouts(self) -> List[int]:
         # players that have folded lose their bets
         payouts = -1 * self.pot_commit * np.logical_not(self.active)
-        if sum(self.active) == 1:
+        if self.active.sum() == 1:
             payouts += self.active * (self.pot - self.pot_commit)
         # if last street played and still multiple players active
         elif self.street >= self.num_streets:
             payouts = self._eval_round()
-            payouts = [payout - self.pot_commit for payout in payouts]
-        return payouts
+            payouts -= self.pot_commit
+        return payouts.tolist()
 
     def _output(self) -> Tuple[Dict, List[int], List[int]]:
         observation = self._observation()
@@ -653,7 +655,7 @@ class Dealer:
             eligible = hands[:, 0][hands[:, 1] == strength].astype(int)
             # cut can only be as large as lowest player commit amount
             cut = np.clip(hands[:, 2], None, pot_commit)
-            split_pot = sum(cut)
+            split_pot = cut.sum()
             split = split_pot // len(eligible)
             remain = split_pot % len(eligible)
             payouts[eligible] += split
