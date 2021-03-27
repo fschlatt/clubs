@@ -3,41 +3,11 @@ import functools
 import itertools
 import operator
 from timeit import default_timer as timer
-from typing import DefaultDict, Dict, Iterator, List, Tuple, Union
-
-import numpy as np
+from typing import Dict, Iterator, List, Tuple
 
 from clubs import error
 
 from . import card
-
-
-NestedCardList = Union[List[card.Card], List["NestedCardList"]]
-
-
-def _nested_shape(nested_list: NestedCardList) -> Tuple[int, ...]:
-    depth_shape_dict: Dict[int, List[int]] = DefaultDict(list)
-
-    def _recurse(nested_list: NestedCardList, depth: int = 0):
-        if isinstance(nested_list, list):
-            depth_shape_dict[depth].append(len(nested_list))
-            for sub_list in nested_list:
-                if isinstance(sub_list, list):
-                    _recurse(sub_list, depth + 1)
-
-    _recurse(nested_list)
-
-    shape = [0] * len(depth_shape_dict)
-    for depth, shape_list in depth_shape_dict.items():
-        if shape_list[1:] != shape_list[:-1]:
-            raise error.CardListMisshapeError(
-                f"unable to create card array, "
-                f"expected number of cards to be equal along all dimensions, "
-                f"got {shape_list} at depth {depth}"
-            )
-        shape[depth] = shape_list[0]
-
-    return tuple(shape)
 
 
 class Evaluator(object):
