@@ -284,8 +284,8 @@ class Dealer:
         # in heads up button posts small blind
         if self.num_players > 2:
             self._move_action()
-        self._collect_multiple_bets(bets=self.antes, street_commits=False)
-        self._collect_multiple_bets(bets=self.blinds, street_commits=True)
+        self._collect_multiple_bets(bets=self.antes.tolist(), street_commits=False)
+        self._collect_multiple_bets(bets=self.blinds.tolist(), street_commits=True)
         self._move_action()
         self._move_action()
 
@@ -559,7 +559,7 @@ class Dealer:
         if street_commits:
             self.street_commits += bets_arr
         self.pot_commit += bets_arr
-        self.pot += bets_arr.sum()
+        self.pot += int(bets_arr.sum())
         self.stacks -= bets_arr
 
     def _collect_bet(self, bet: int):
