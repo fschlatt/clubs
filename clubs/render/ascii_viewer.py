@@ -1,6 +1,48 @@
 import os
+from typing import Any, Dict, List
 
 from . import viewer
+
+
+def _parse_action_string(config: Dict[str, Any], done: bool) -> str:
+    action_string = ""
+
+    prev_action = config["prev_action"]
+    if done:
+        action_string += "Action on Player {}".format(config["action"] + 1)
+    else:
+        if prev_action is not None:
+            action_string = "Player {} {}"
+            player, bet, fold = prev_action
+            if fold:
+                action = "folded "
+            else:
+                if bet:
+                    action = "bet {} ".format(bet)
+                else:
+                    action = "checked "
+            action_string = action_string.format(player + 1, action)
+
+    return action_string
+
+
+def _parse_win_string(config: Dict[str, Any], done: bool) -> str:
+    win_string = ""
+    if done:
+        win_string = "Player"
+        if sum(payout > 0 for payout in config["payouts"]) > 1:
+            win_string += "s {} won {} respectively"
+        else:
+            win_string += " {} won {}"
+        players = []
+        payouts = []
+        for player, payout in enumerate(config["payouts"]):
+            if payout > 0:
+                players.append(str(player + 1))
+                payouts.append(str(payout))
+        win_string = win_string.format(", ".join(players), ", ".join(payouts))
+
+    return win_string
 
 
 class ASCIIViewer(viewer.PokerViewer):
@@ -51,38 +93,7 @@ class ASCIIViewer(viewer.PokerViewer):
 
         self.player_pos = self.POS_DICT[num_players]
 
-    def parse_string(self, config: dict) -> str:
-        """Parses game config and inserts values into ascii table
-
-        Parameters
-        ----------
-        config : dict
-            game configuration dictionary,
-                config = {
-                    'action': int - position of active player,
-                    'active': List[bool] - list of active players,
-                    'all_in': List[bool] - list of all in players,
-                    'community_cards': List[Card] - list of community
-                                       cards,
-                    'button': int - position of button,
-                    'done': bool - list of done players,
-                    'hole_cards': List[List[Card]] - list of hole cards,
-                    'pot': int - chips in pot,
-                    'payouts': List[int] - list of chips won for each
-                               player,
-                    'prev_action': Tuple[int, int, int] - last
-                                   position bet and fold,
-                    'street_commits': List[int] - list of number of
-                                      chips added to pot from each
-                                      player on current street,
-                    'stacks': List[int] - list of stack sizes,
-                }
-
-        Returns
-        -------
-        str
-            ascii table representation
-        """
+    def _parse_string(self, config: Dict[str, Any]) -> str:
 
         action = config["action"]
         button = config["button"]
@@ -90,7 +101,8 @@ class ASCIIViewer(viewer.PokerViewer):
         positions = ["p{}".format(idx) for idx in self.player_pos]
 
         players = self._parse_players(config, done, action)
-        action_string, win_string = self._parse_string(config, done, positions)
+        action_string = _parse_action_string(config, done)
+        win_string = _parse_win_string(config, done)
 
         str_config = {key: "" for key in self.KEYS}
 
@@ -109,8 +121,10 @@ class ASCIIViewer(viewer.PokerViewer):
 
         # button + player positions
         str_config["b{}".format(self.player_pos[button])] = "D "
-        iterables = [players, config["street_commits"], positions, config["all_in"]]
-        for player, street_commit, pos, all_in in zip(*iterables):
+        street_commits = config["street_commits"]
+        all_in = config["all_in"]
+        iterator = zip(players, street_commits, positions, all_in)
+        for player, street_commit, pos, all_in in iterator:
             str_config[pos] = player
             str_config[pos + "c"] = "{:,}".format(street_commit)
             if all_in and not done:
@@ -118,8 +132,8 @@ class ASCIIViewer(viewer.PokerViewer):
 
         # payouts
         if done:
-            iterables = [config["payouts"], positions]
-            for payout, pos in zip(*iterables):
+            payouts: List[int] = config["payouts"]
+            for payout, pos in zip(payouts, positions):
                 str_config[pos + "c"] = "{:,}".format(payout)
 
         # action + win string
@@ -130,7 +144,7 @@ class ASCIIViewer(viewer.PokerViewer):
 
         return string
 
-    def _parse_players(self, config, done, action):
+    def _parse_players(self, config: Dict[str, Any], done: bool, action: int):
         players = []
         iterator = zip(config["hole_cards"], config["stacks"], config["active"])
         for idx, (hand, stack, active) in enumerate(iterator):
@@ -154,41 +168,6 @@ class ASCIIViewer(viewer.PokerViewer):
                 + " {:,}".format(stack)
             )
         return players
-
-    def _parse_string(self, config, done, positions):
-        action_string = ""
-        win_string = ""
-
-        prev_action = config["prev_action"]
-        if prev_action is not None:
-            action_string = "Player {} {}"
-            player, bet, fold = prev_action
-            if fold:
-                action = "folded "
-            else:
-                if bet:
-                    action = "bet {} ".format(bet)
-                else:
-                    action = "checked "
-            action_string = action_string.format(player + 1, action)
-
-        if done:
-            win_string = "Player"
-            if sum(payout > 0 for payout in config["payouts"]) > 1:
-                win_string += "s {} won {} respectively"
-            else:
-                win_string += " {} won {}"
-            players = []
-            payouts = []
-            for player, payout in enumerate(config["payouts"]):
-                if payout > 0:
-                    players.append(str(player + 1))
-                    payouts.append(str(payout))
-            win_string = win_string.format(", ".join(players), ", ".join(payouts))
-        else:
-            action_string += "Action on Player {}".format(config["action"] + 1)
-
-        return action_string, win_string
 
     def render(self, config: dict, sleep: float = 0.0) -> None:
         """Render ascii table representation based on the table
@@ -218,6 +197,6 @@ class ASCIIViewer(viewer.PokerViewer):
                     'stacks': List[int] - list of stack sizes,
                 }
         """
-        string = self.parse_string(config)
+        string = self._parse_string(config)
         print(string)
         super().render(config, sleep)
