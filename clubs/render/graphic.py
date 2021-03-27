@@ -11,8 +11,6 @@ from multiprocessing import connection
 from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union, overload
 from xml.etree import ElementTree as et
 
-import numpy as np
-
 from .. import error, poker
 from . import viewer
 
@@ -159,21 +157,21 @@ class GraphicViewer(viewer.PokerViewer):
                     'stacks': List[int] - list of stack sizes,
                 }
         """
-        self.socket.send({"content": jsonify(config)})
+        self.socket.send({"content": _jsonify(config)})
         super().render(config, sleep)
 
 
 @overload
-def convert_hands(hands: List[poker.Card]) -> List[str]:
+def _convert_hands(hands: List[poker.Card]) -> List[str]:
     ...  # pragma: no cover
 
 
 @overload
-def convert_hands(hands: List[List[poker.Card]]) -> List[List[str]]:
+def _convert_hands(hands: List[List[poker.Card]]) -> List[List[str]]:
     ...  # pragma: no cover
 
 
-def convert_hands(
+def _convert_hands(
     hands: Union[List[poker.Card], List[List[poker.Card]]]
 ) -> Union[List[str], List[List[str]]]:
     _hands: List[List[str]] = []
@@ -191,13 +189,11 @@ def convert_hands(
     return _cards
 
 
-def jsonify(config: Union[Dict[str, Any]]) -> Dict[str, Any]:
+def _jsonify(config: Union[Dict[str, Any]]) -> Dict[str, Any]:
     _config: Dict[str, Any] = {}
     for key, value in config.items():
-        if isinstance(value, np.ndarray):
-            _config[key] = value.tolist()
-        elif isinstance(value, list):
-            cards = convert_hands(value)
+        if "cards" in key:
+            cards = _convert_hands(value)
             _config[key] = cards
         else:
             try:

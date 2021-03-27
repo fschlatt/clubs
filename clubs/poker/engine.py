@@ -396,16 +396,16 @@ class Dealer:
 
     def _render_config(self):
         action = int(self.action)
-        active = self.active
-        all_in = self.active * (self.stacks == 0)
+        active = self.active.tolist()
+        all_in = (self.active * (self.stacks == 0)).tolist()
         community_cards = self.community_cards
         button = int(self.button)
         done = all(self._done())
         hole_cards = self.hole_cards
         pot = int(self.pot)
         payouts = self._payouts()
-        street_commits = self.street_commits
-        stacks = self.stacks
+        street_commits = self.street_commits.tolist()
+        stacks = self.stacks.tolist()
 
         config = {
             "action": action,
