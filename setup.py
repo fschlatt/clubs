@@ -17,6 +17,13 @@ file_dir = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(file_dir, "README.md"), encoding="utf-8") as file:
     long_description = file.read()
 
+with open(os.path.join(file_dir, "requirements.txt")) as file:
+    requirements = file.read().split("\n")
+
+with open(os.path.join(file_dir, "extra-requirements.txt")) as file:
+    extra_requirements = file.read().split("\n")
+
+
 setup(
     name="clubs",
     version=clubs.__version__,
@@ -38,13 +45,14 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     keywords=["reinforcement learning", "poker", "AI", "gym"],
     packages=find_packages(exclude=["test", "test.*"]),
     python_requires=">=3.6",
-    install_requires=["numpy>=1.16.6"],
+    install_requires=requirements,
     include_package_data=True,
-    extras_requires={"render": ["flask>=1.0.0"]},
+    extras_requires={"render": extra_requirements},
     project_urls={
         "Bug Reports": "https://github.com/fschlatt/clubs/issues",
         "Source": "https://github.com/fschlatt/clubs/",

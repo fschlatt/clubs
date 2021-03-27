@@ -1,5 +1,6 @@
 import copy
 import http.client
+import imp
 import math
 import multiprocessing
 import os
@@ -8,13 +9,20 @@ import time
 import urllib.error
 import urllib.request
 from multiprocessing import connection
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union, overload
+from typing import Any, Dict, List, Optional, Tuple, Union, overload
 from xml.etree import ElementTree as et
+
 
 from .. import error, poker
 from . import viewer
 
-Cards = TypeVar("Cards")
+try:
+    imp.find_module("gevent")
+    imp.find_module("flask")
+    imp.find_module("flask_socketio")
+    REQUIREMENTS = True
+except ImportError:
+    REQUIREMENTS = False
 
 
 class GraphicViewer(viewer.PokerViewer):
@@ -30,6 +38,11 @@ class GraphicViewer(viewer.PokerViewer):
         super(GraphicViewer, self).__init__(
             num_players, num_hole_cards, num_community_cards, **kwargs
         )
+        if not REQUIREMENTS:
+            raise error.MissingImportsError(
+                "unable to use web server rendering, make sure flask, "
+                "flask_socketio and gevent are installed"
+            )
 
         self.host = host
         if port:

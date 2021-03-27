@@ -40,3 +40,7 @@ class InvalidRenderModeError(Exception):
 
 class RenderInitializationError(Exception):
     pass
+
+
+class MissingImportsError(Exception):
+    pass
