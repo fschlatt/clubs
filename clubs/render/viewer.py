@@ -1,4 +1,4 @@
-import time
+from typing import Any, Dict
 
 
 class PokerViewer:
@@ -22,34 +22,37 @@ class PokerViewer:
         self.num_hole_cards = num_hole_cards
         self.num_community_cards = num_community_cards
 
-    def render(self, config: dict, sleep: float = 0) -> None:
+    def render(self, config: Dict[str, Any], sleep: float = 0) -> None:
         """Render the table based on the table configuration
 
         Parameters
         ----------
-        config : dict
-            game configuration dictionary,
-                config = {
-                    'action': int - position of active player,
-                    'active': List[bool] - list of active players,
-                    'all_in': List[bool] - list of all in players,
-                    'community_cards': List[Card] - list of community
-                                       cards,
-                    'dealer': int - position of dealer,
-                    'done': bool - list of done players,
-                    'hole_cards': List[List[Card]] - list of hole cards,
-                    'pot': int - chips in pot,
-                    'payouts': List[int] - list of chips won for each
-                               player,
-                    'prev_action': Tuple[int, int, int] - last
-                                   position bet and fold,
-                    'street_commits': List[int] - list of number of
-                                      chips added to pot from each
-                                      player on current street,
-                    'stacks': List[int] - list of stack sizes,
-                }
+        config : Dict[str, Any]
+            game configuration dictionary
+
         sleep : float, optional
             sleep time after render, by default 0
+
+        Examples
+        --------
+        >>> from clubs import Card
+        >>> config = {
+        ...     'action': 0, # int - position of active player
+        ...     'active': [True, True], # List[bool] - list of active players
+        ...     'all_in': [False, False], # List[bool] - list of all in players
+        ...     'community_cards': [], # List[Card] - list of community cards
+        ...     'dealer': 0, # int - position of dealer
+        ...     'done': False, # bool - toggle if hand is completed
+        ...     'hole_cards': [[Card("Ah")], [Card("Ac")]], # List[List[Card]] -
+        ...                                                 # list of list of hole card
+        ...     'pot': 10, # int - chips in pot
+        ...     'payouts': [0, 0], # List[int] - list of chips won for each player
+        ...     'prev_action': [1, 10, 0], # Tuple[int, int, int] -
+        ...                                # last position bet and fold
+        ...     'street_commits': [10, 20] # List[int] - list of number of
+        ...                                # chips added to pot from each
+        ...                                # player on current street
+        ...     'stacks': [100, 100] # List[int] - list of stack sizes
+        ... }
         """
-        if sleep:
-            time.sleep(sleep)
+        raise NotImplementedError()

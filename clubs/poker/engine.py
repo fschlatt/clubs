@@ -210,7 +210,7 @@ class Dealer:
 
     def __str__(self) -> str:
         config = self._render_config()
-        return self.ascii_viewer.parse_string(config)
+        return self.ascii_viewer._parse_string(config)
 
     def __repr__(self) -> str:
         string = (

@@ -12,14 +12,6 @@ clubs.render.ascii\_viewer module
    :undoc-members:
    :show-inheritance:
 
-clubs.render.asciimatics\_viewer module
----------------------------------------
-
-.. automodule:: clubs.render.asciimatics_viewer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 clubs.render.graphic module
 ---------------------------
 

@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Any, Dict, List
 
 from . import viewer
@@ -8,9 +9,7 @@ def _parse_action_string(config: Dict[str, Any], done: bool) -> str:
     action_string = ""
 
     prev_action = config["prev_action"]
-    if done:
-        action_string += "Action on Player {}".format(config["action"] + 1)
-    else:
+    if not done:
         if prev_action is not None:
             action_string = "Player {} {}"
             player, bet, fold = prev_action
@@ -22,6 +21,7 @@ def _parse_action_string(config: Dict[str, Any], done: bool) -> str:
                 else:
                     action = "checked "
             action_string = action_string.format(player + 1, action)
+        action_string += "Action on Player {}".format(config["action"] + 1)
 
     return action_string
 
@@ -169,34 +169,40 @@ class ASCIIViewer(viewer.PokerViewer):
             )
         return players
 
-    def render(self, config: dict, sleep: float = 0.0) -> None:
+    def render(self, config: Dict[str, Any], sleep: float = 0) -> None:
         """Render ascii table representation based on the table
         configuration
 
         Parameters
         ----------
-        config : dict
-            game configuration dictionary,
-                config = {
-                    'action': int - position of active player,
-                    'active': List[bool] - list of active players,
-                    'all_in': List[bool] - list of all in players,
-                    'community_cards': List[Card] - list of community
-                                       cards,
-                    'button': int - position of button,
-                    'done': bool - list of done players,
-                    'hole_cards': List[List[Card]] - list of hole cards,
-                    'pot': int - chips in pot,
-                    'payouts': List[int] - list of chips won for each
-                               player,
-                    'prev_action': Tuple[int, int, int] - last
-                                   position bet and fold,
-                    'street_commits': List[int] - list of number of
-                                      chips added to pot from each
-                                      player on current street,
-                    'stacks': List[int] - list of stack sizes,
-                }
+        config : Dict[str, Any]
+
+        sleep : float, optional
+            sleep time after render, by default 0
+
+        Examples
+        --------
+        >>> from clubs import Card
+        >>> config = {
+        ...     'action': 0, # int - position of active player
+        ...     'active': [True, True], # List[bool] - list of active players
+        ...     'all_in': [False, False], # List[bool] - list of all in players
+        ...     'community_cards': [], # List[Card] - list of community cards
+        ...     'dealer': 0, # int - position of dealer
+        ...     'done': False, # bool - toggle if hand is completed
+        ...     'hole_cards': [[Card("Ah")], [Card("Ac")]], # List[List[Card]] -
+        ...                                                 # list of list of hole card
+        ...     'pot': 10, # int - chips in pot
+        ...     'payouts': [0, 0], # List[int] - list of chips won for each player
+        ...     'prev_action': [1, 10, 0], # Tuple[int, int, int] -
+        ...                                # last position bet and fold
+        ...     'street_commits': [10, 20] # List[int] - list of number of
+        ...                                # chips added to pot from each
+        ...                                # player on current street
+        ...     'stacks': [100, 100] # List[int] - list of stack sizes
+        ... }
         """
         string = self._parse_string(config)
         print(string)
-        super().render(config, sleep)
+        if sleep:
+            time.sleep(sleep)

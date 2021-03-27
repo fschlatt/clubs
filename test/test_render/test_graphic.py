@@ -16,14 +16,14 @@ def test_init():
 
 def test_svg():
     with pytest.raises(FileNotFoundError):
-        graphic.SVGElement("foo")
+        graphic._SVGElement("foo")
 
-    table = graphic.SVGElement("table")
+    table = graphic._SVGElement("table")
     assert 'class="table"' in str(table)
     assert "SVGElement<name=table" in repr(table)
 
-    patterns = graphic.SVGElement("patterns")
-    assert isinstance(patterns.get_sub_svg("pattern"), graphic.SVGElement)
+    patterns = graphic._SVGElement("patterns")
+    assert isinstance(patterns.get_sub_svg("pattern"), graphic._SVGElement)
     sub_patterns = patterns.get_sub_svgs("pattern")
     assert len(sub_patterns) == 7
     with pytest.raises(KeyError):
@@ -41,7 +41,7 @@ def test_svg():
     assert patterns.view_box_height is None
     assert patterns.view_box_width is None
 
-    base = graphic.SVGElement("base")
+    base = graphic._SVGElement("base")
     assert base.view_box == "0 0 1000 1000"
     assert base.view_box_x == 0
     assert base.view_box_y == 0
@@ -62,7 +62,7 @@ def test_svg():
 
 
 def test_rectangle():
-    rectangle = graphic.RoundedRectangle(0, 0, 100, 100)
+    rectangle = graphic._RoundedRectangle(0, 0, 100, 100)
 
     x, y = rectangle.edge(0)
     assert pytest.approx(x, 0)

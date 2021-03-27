@@ -40,7 +40,7 @@ class GraphicViewer(viewer.PokerViewer):
             self.port = tmp_socket.getsockname()[1]
             tmp_socket.close()
 
-        self.svg_poker = SVGPoker(
+        self.svg_poker = _SVGPoker(
             self.num_players, self.num_hole_cards, self.num_community_cards
         )
 
@@ -130,35 +130,42 @@ class GraphicViewer(viewer.PokerViewer):
 
         socketio.run(app, port=self.port)
 
-    def render(self, config: dict, sleep: float = 0) -> None:
-        """Render the table based on the table configuration
+    def render(self, config: Dict[str, Any], sleep: float = 0) -> None:
+        """Render the table in browser based on the table configuration
 
         Parameters
         ----------
-        config : dict
-            game configuration dictionary,
-                config = {
-                    'action': int - position of active player,
-                    'active': List[bool] - list of active players,
-                    'all_in': List[bool] - list of all in players,
-                    'community_cards': List[Card] - list of community
-                                       cards,
-                    'dealer': int - position of dealer,
-                    'done': bool - list of done players,
-                    'hole_cards': List[List[Card]] - list of hole cards,
-                    'pot': int - chips in pot,
-                    'payouts': List[int] - list of chips won for each
-                               player,
-                    'prev_action': Tuple[int, int, int] - last
-                                   position bet and fold,
-                    'street_commits': List[int] - list of number of
-                                      chips added to pot from each
-                                      player on current street,
-                    'stacks': List[int] - list of stack sizes,
-                }
+        config : Dict[str, Any]
+            game configuration dictionary
+
+        sleep : float, optional
+            sleep time after render, by default 0
+
+        Examples
+        --------
+        >>> from clubs import Card
+        >>> config = {
+        ...     'action': 0, # int - position of active player
+        ...     'active': [True, True], # List[bool] - list of active players
+        ...     'all_in': [False, False], # List[bool] - list of all in players
+        ...     'community_cards': [], # List[Card] - list of community cards
+        ...     'dealer': 0, # int - position of dealer
+        ...     'done': False, # bool - toggle if hand is completed
+        ...     'hole_cards': [[Card("Ah")], [Card("Ac")]], # List[List[Card]] -
+        ...                                                 # list of list of hole card
+        ...     'pot': 10, # int - chips in pot
+        ...     'payouts': [0, 0], # List[int] - list of chips won for each player
+        ...     'prev_action': [1, 10, 0], # Tuple[int, int, int] -
+        ...                                # last position bet and fold
+        ...     'street_commits': [10, 20] # List[int] - list of number of
+        ...                                # chips added to pot from each
+        ...                                # player on current street
+        ...     'stacks': [100, 100] # List[int] - list of stack sizes
+        ... }
         """
         self.socket.send({"content": _jsonify(config)})
-        super().render(config, sleep)
+        if sleep:
+            time.sleep(sleep)
 
 
 @overload
@@ -203,7 +210,7 @@ def _jsonify(config: Union[Dict[str, Any]]) -> Dict[str, Any]:
     return _config
 
 
-class RoundedRectangle:
+class _RoundedRectangle:
     def __init__(self, x: float, y: float, width: float, height: float) -> None:
         self.x = x
         self.y = y
@@ -266,7 +273,7 @@ class RoundedRectangle:
         return float(self.straight_width * 2 + 2 * math.pi * self.radius_height)
 
 
-class SVGElement:
+class _SVGElement:
 
     SVGS_PATH = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "resources", "static", "images"
@@ -288,7 +295,7 @@ class SVGElement:
         return string
 
     def __repr__(self) -> str:
-        return f"SVGElement<name={self.name}, id={id(self)}>"
+        return f"_SVGElement<name={self.name}, id={id(self)}>"
 
     @staticmethod
     def _x_path(name: str, attr_name: Optional[str] = None) -> str:
@@ -296,26 +303,26 @@ class SVGElement:
             return f".//*[@{attr_name}='{name}']"
         return f".//{name}"
 
-    def get_sub_svg(self, name: str, attr_name: Optional[str] = None) -> "SVGElement":
+    def get_sub_svg(self, name: str, attr_name: Optional[str] = None) -> "_SVGElement":
         xpath = self._x_path(name, attr_name)
         svg = self.svg.find(xpath)
         if svg is None:
             raise KeyError(f"unable to find sub svg with arguments {name}")
-        return SVGElement(name, svg)
+        return _SVGElement(name, svg)
 
     def get_sub_svgs(
         self, name: str, attr_name: Optional[str] = None
-    ) -> List["SVGElement"]:
+    ) -> List["_SVGElement"]:
         xpath = self._x_path(name, attr_name)
         svgs = self.svg.findall(xpath)
         if not svgs:
             raise KeyError(f"unable to find sub svg with arguments {name}")
-        return [SVGElement(name, svg) for svg in svgs]
+        return [_SVGElement(name, svg) for svg in svgs]
 
     def get_svg_attr(self, tag_name: str) -> Optional[str]:
         return self.svg.get(tag_name, None)
 
-    def set_svg_attr(self, tag_name: str, value: str) -> "SVGElement":
+    def set_svg_attr(self, tag_name: str, value: str) -> "_SVGElement":
         self.svg.set(tag_name, value)
         return self
 
@@ -440,8 +447,8 @@ class SVGElement:
             self.set_svg_attr("viewBox", view_box)
 
     def center_x(
-        self, other: Optional["SVGElement"] = None, x: Optional[float] = None
-    ) -> "SVGElement":
+        self, other: Optional["_SVGElement"] = None, x: Optional[float] = None
+    ) -> "_SVGElement":
         if other is not None:
             if other.view_box_width is not None:
                 other_width = other.view_box_width
@@ -453,8 +460,8 @@ class SVGElement:
         return self
 
     def center_y(
-        self, other: Optional["SVGElement"] = None, y: Optional[float] = None
-    ) -> "SVGElement":
+        self, other: Optional["_SVGElement"] = None, y: Optional[float] = None
+    ) -> "_SVGElement":
         if other is not None:
             if other.view_box_height is not None:
                 other_height = other.view_box_height
@@ -467,36 +474,36 @@ class SVGElement:
 
     def center(
         self,
-        other: Optional["SVGElement"] = None,
+        other: Optional["_SVGElement"] = None,
         x: Optional[float] = None,
         y: Optional[float] = None,
-    ) -> "SVGElement":
+    ) -> "_SVGElement":
         self.center_x(other, x)
         self.center_y(other, y)
         return self
 
     def extend(
-        self, other: Union[List["SVGElement"], List[et.Element]]
-    ) -> "SVGElement":
+        self, other: Union[List["_SVGElement"], List[et.Element]]
+    ) -> "_SVGElement":
         for element in other:
             self.append(element)
         return self
 
-    def append(self, other: Union["SVGElement", et.Element]) -> "SVGElement":
-        if isinstance(other, SVGElement):
+    def append(self, other: Union["_SVGElement", et.Element]) -> "_SVGElement":
+        if isinstance(other, _SVGElement):
             other = other.svg
         self.svg.append(other)
         return self
 
-    def remove(self, other: "SVGElement") -> "SVGElement":
+    def remove(self, other: "_SVGElement") -> "_SVGElement":
         self.svg.remove(other.svg)
         return self
 
-    def copy(self) -> "SVGElement":
+    def copy(self) -> "_SVGElement":
         return copy.deepcopy(self)
 
 
-class SVGPoker:
+class _SVGPoker:
     def __init__(
         self, num_players: int, num_hole_cards: int, num_community_cards: int
     ) -> None:
@@ -505,22 +512,24 @@ class SVGPoker:
         self.num_community_cards = num_community_cards
         self.base_svg = self._base_svg()
 
-    def _base_svg(self) -> "SVGElement":
-        base = SVGElement("base")
-        table = SVGElement("table")
-        player = SVGElement("player")
-        card = SVGElement("card")
-        street_commit = SVGElement("street_commit")
-        for pattern in SVGElement("patterns").get_sub_svgs("pattern"):
+    def _base_svg(self) -> "_SVGElement":
+        base = _SVGElement("base")
+        table = _SVGElement("table")
+        player = _SVGElement("player")
+        card = _SVGElement("card")
+        street_commit = _SVGElement("street_commit")
+        for pattern in _SVGElement("patterns").get_sub_svgs("pattern"):
             base.append(pattern)
 
         table.center(other=base)
         base.append(table)
 
-        player_rectangle = RoundedRectangle(table.x, table.y, table.width, table.height)
+        player_rectangle = _RoundedRectangle(
+            table.x, table.y, table.width, table.height
+        )
         player_rectangle.width += 100
         player_rectangle.height += 100
-        street_commit_rectangle = RoundedRectangle(
+        street_commit_rectangle = _RoundedRectangle(
             table.x, table.y, table.width, table.height
         )
         street_commit_rectangle.width -= 225
@@ -541,8 +550,8 @@ class SVGPoker:
 
     @staticmethod
     def new_player(
-        player: SVGElement, label: str, card: SVGElement, num_cards: int
-    ) -> SVGElement:
+        player: _SVGElement, label: str, card: _SVGElement, num_cards: int
+    ) -> _SVGElement:
         new_player = player.copy()
         new_player.id = label
         card_width = card.width
@@ -571,8 +580,11 @@ class SVGPoker:
         return new_player
 
     def add_players(
-        self, player: SVGElement, card: SVGElement, player_rectangle: RoundedRectangle
-    ) -> List[SVGElement]:
+        self,
+        player: _SVGElement,
+        card: _SVGElement,
+        player_rectangle: _RoundedRectangle,
+    ) -> List[_SVGElement]:
         players = []
         player = player.copy()
         card = card.copy()
@@ -605,7 +617,7 @@ class SVGPoker:
             players.append(new_player)
         return players
 
-    def add_community(self, player: SVGElement, card: SVGElement) -> SVGElement:
+    def add_community(self, player: _SVGElement, card: _SVGElement) -> _SVGElement:
         community = player.copy()
         card = card.copy()
 
@@ -638,8 +650,8 @@ class SVGPoker:
         return community
 
     def add_street_commits(
-        self, street_commit: SVGElement, street_commit_retangle: RoundedRectangle
-    ) -> List[SVGElement]:
+        self, street_commit: _SVGElement, street_commit_retangle: _RoundedRectangle
+    ) -> List[_SVGElement]:
         street_commits = []
         for player_idx in range(self.num_players):
             x, y = street_commit_retangle.edge(player_idx / (self.num_players))
