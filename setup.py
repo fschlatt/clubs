@@ -44,7 +44,7 @@ setup(
     python_requires=">=3.6",
     install_requires=["numpy>=1.16.6"],
     include_package_data=True,
-    extras_requires={"render": ["asciimatics>=1.0.0", "flask>=1.0.0"]},
+    extras_requires={"render": ["flask>=1.0.0"]},
     project_urls={
         "Bug Reports": "https://github.com/fschlatt/clubs/issues",
         "Source": "https://github.com/fschlatt/clubs/",

@@ -88,8 +88,3 @@ def test_human(dealer: clubs.Dealer):
 
     xml = et.fromstring(svg_xml_string)
     assert len(xml.findall(".//svg[@class='player']")) == 6
-
-
-def test_asciimatics(dealer: clubs.Dealer):
-    dealer.viewer = None
-    dealer.render("asciimatics")

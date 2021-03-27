@@ -7,7 +7,6 @@ dependencies:
   - _openmp_mutex=4.5=1_llvm
   - alabaster=0.7.12=py_0
   - appdirs=1.4.3=pyh91ea838_0
-  - asciimatics=1.11.0=py38h32f6830_1
   - astroid=2.3.3=py38_1
   - attrs=19.3.0=py_0
   - babel=2.8.0=py_0
