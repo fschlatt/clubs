@@ -19,7 +19,16 @@ except NameError:
 if __CLUBS_SETUP__:  # type: ignore
     pass  # pragma: no cover
 else:
-    from . import configs, poker
+    from . import configs, poker, render
     from .poker import Card, Dealer, Deck, Evaluator, LookupTable
 
-__all__ = ["configs", "poker", "Card", "Dealer", "Deck", "Evaluator", "LookupTable"]
+__all__ = [
+    "configs",
+    "poker",
+    "render",
+    "Card",
+    "Dealer",
+    "Deck",
+    "Evaluator",
+    "LookupTable",
+]
