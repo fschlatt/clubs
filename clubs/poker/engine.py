@@ -240,17 +240,17 @@ class Dealer:
 
         >>> dealer = Dealer(**configs.LEDUC_TWO_PLAYER)
         >>> dealer.reset()
-        ... {'action': 0,
-        ...  'active': array([ True,  True]),
-        ...  'button': 2,
+        ... {'action': 1,
+        ...  'active': [True, True],
+        ...  'button': 1,
         ...  'call': 0,
         ...  'community_cards': [],
-        ...  'hole_cards': [['K♠'], ['K♥']],
+        ...  'hole_cards': [[Card (139879188163600): A♥], [Card (139879188163504): A♠]],
         ...  'max_raise': 2,
         ...  'min_raise': 2,
         ...  'pot': 2,
-        ...  'stacks': array([8, 8], dtype=int32),
-        ...  'street_commits': array([0, 0], dtype=int32)}
+        ...  'stacks': [9, 9],
+        ...  'street_commits': [0, 0]}
         """
         if reset_stacks:
             self.active.fill(1)
@@ -307,12 +307,8 @@ class Dealer:
         Returns
         -------
         Tuple[Dict, List[int], List[int]]
-            observation dictionary containing following info
-
-            payouts for every player
-
-            bool array containing value for every player if that player
-            is still involved in round
+            observation dictionary, payouts for every player, boolean value for every
+            player showing if that player is still active in the round
 
         Examples
         --------
@@ -321,21 +317,21 @@ class Dealer:
         >>> obs = dealer.reset()
         >>> dealer.step(0)
         ... ({'action': 0,
-        ...  'active': array([ True,  True]),
+        ...  'active': [True, True],
         ...  'button': 1,
         ...  'call': 0,
         ...  'community_cards': [],
-        ...  'hole_cards': [['Q♠'], ['A♥']],
+        ...  'hole_cards': [[Card (139879188163600): A♥], [Card (139879188163504): A♠]],
         ...  'max_raise': 2,
         ...  'min_raise': 2,
         ...  'pot': 2,
-        ...  'stacks': array([9, 9], dtype=int32),
-        ...  'street_commits': array([0, 0], dtype=int32)},
-        ...  array([0, 0], dtype=int32),
-        ...  array([False, False]))
+        ...  'stacks': [9, 9],
+        ...  'street_commits': [0, 0]},
+        ...  [0, 0],
+        ...  [False, False])
         """
         if self.action == -1:
-            if any(self.active):
+            if self.active.any():
                 return self._output()
             raise error.TableResetError("call reset() before calling first step()")
 
@@ -588,13 +584,13 @@ class Dealer:
             "active": self.active.tolist(),
             "button": self.button,
             "call": call,
-            "community_cards": [str(card) for card in self.community_cards],
-            "hole_cards": [[str(card) for card in cards] for cards in self.hole_cards],
+            "community_cards": self.community_cards,
+            "hole_cards": self.hole_cards,
             "max_raise": max_raise,
             "min_raise": min_raise,
             "pot": self.pot,
-            "stacks": self.stacks,
-            "street_commits": self.street_commits,
+            "stacks": self.stacks.tolist(),
+            "street_commits": self.street_commits.tolist(),
         }
         return observation
 
