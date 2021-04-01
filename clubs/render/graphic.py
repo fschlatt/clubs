@@ -93,10 +93,14 @@ class GraphicViewer(viewer.PokerViewer):
 
         assert response and response.status == 200
 
+    def close(self):
+        if self.process.is_alive():
+            self.socket.send({"content": "close"})
+            self.process.terminate()
+            self.process.join()
+
     def __del__(self):
-        self.socket.send({"content": "close"})
-        self.process.terminate()
-        self.process.join()
+        self.close()
 
     def _run_flask(self):
         from gevent import monkey
@@ -136,7 +140,7 @@ class GraphicViewer(viewer.PokerViewer):
                     else:
                         config = message["content"]
                         socketio.emit("config", config, broadcast=True)
-                socketio.sleep(0.01)
+                socketio.sleep(0.0001)
             socket.close()
 
         socketio.start_background_task(listener)
