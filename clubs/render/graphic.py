@@ -12,7 +12,6 @@ from multiprocessing import connection
 from typing import Any, Dict, List, Optional, Tuple, Union, overload
 from xml.etree import ElementTree as et
 
-
 from .. import error, poker
 from . import viewer
 
