@@ -289,7 +289,7 @@ class Dealer:
         self._move_action()
         self._move_action()
 
-        return self._observation()
+        return self._observation(False)
 
     def step(self, bet: float) -> Tuple[Dict, List[int], List[int]]:
         """Advances poker game to next player. If the bet is 0, it is
@@ -332,7 +332,10 @@ class Dealer:
         """
         if self.action == -1:
             if self.active.any():
-                return self._output()
+                done = self._done()
+                payouts = self._payouts()
+                observation = self._observation(all(done))
+                return observation, payouts, done
             raise error.TableResetError("call reset() before calling first step()")
 
         fold = bet < 0
@@ -381,13 +384,13 @@ class Dealer:
             self.street_option = np.logical_not(self.active).astype(bool)
             self.street_raises = 0
 
-        observation, payouts, done = self._output()
+        done = self._done()
+        payouts = self._payouts()
         if all(done):
             self.action = -1
             self.pot = 0
-            observation["action"] = -1
-            observation["pot"] = 0
             self.stacks += payouts + self.pot_commit
+        observation = self._observation(all(done))
         return observation, payouts, done
 
     def _render_config(self):
@@ -574,8 +577,8 @@ class Dealer:
             return out.tolist()
         return np.logical_not(self.active).tolist()
 
-    def _observation(self) -> Dict:
-        if all(self._done()):
+    def _observation(self, done: bool) -> Dict:
+        if done:
             call = min_raise = max_raise = 0
         else:
             call, min_raise, max_raise = self._bet_sizes()
@@ -604,12 +607,6 @@ class Dealer:
             payouts = self._eval_round()
             payouts -= self.pot_commit
         return payouts.tolist()
-
-    def _output(self) -> Tuple[Dict, List[int], List[int]]:
-        observation = self._observation()
-        payouts = self._payouts()
-        done = self._done()
-        return observation, payouts, done
 
     def _eval_hands(
         self, hole_cards: List[List[poker.Card]], community_cards: List[poker.Card]
