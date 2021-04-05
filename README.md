@@ -16,7 +16,7 @@ clubs is a python library for running arbitrary configurations of community card
 
 ## Install
 
-Install using `pip install clubs`.
+Install using `pip install clubs`. To enable webserver rendering (see example below), install using `pip install clubs[render]`.
 
 ## Example
 
