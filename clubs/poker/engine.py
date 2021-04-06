@@ -430,6 +430,8 @@ class Dealer:
         ----------
         mode : str, optional
             toggle for using different renderer, by default 'human'
+        sleep : float, optional
+            time to wait after rendering, by default 0
         """
         viewer: Optional[Type[render.PokerViewer]] = None
         render_modes = ["ascii", "human"]
