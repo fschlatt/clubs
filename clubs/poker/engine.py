@@ -1,17 +1,6 @@
 """Classes and functions for running poker games"""
 import itertools
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Literal,
-    Optional,
-    Tuple,
-    Type,
-    TypedDict,
-    Union,
-)
+from typing import Any, Iterator, List, Literal, Optional, Tuple, Type, TypedDict, Union
 
 import numpy as np
 
@@ -428,7 +417,7 @@ class Dealer:
         observation = self._observation(all(done))
         return observation, payouts, done
 
-    def _render_config(self) -> Dict[str, Any]:
+    def _render_config(self) -> render.viewer.RenderConfig:
         action = int(self.action)
         active = self.active.tolist()
         all_in = (self.active * (self.stacks == 0)).tolist()
@@ -441,7 +430,7 @@ class Dealer:
         street_commits = self.street_commits.tolist()
         stacks = self.stacks.tolist()
 
-        config = {
+        config: render.viewer.RenderConfig = {
             "action": action,
             "active": active,
             "all_in": all_in,
