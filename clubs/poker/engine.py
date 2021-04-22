@@ -428,7 +428,7 @@ class Dealer:
         observation = self._observation(all(done))
         return observation, payouts, done
 
-    def _render_config(self):
+    def _render_config(self) -> Dict[str, Any]:
         action = int(self.action)
         active = self.active.tolist()
         all_in = (self.active * (self.stacks == 0)).tolist()
@@ -458,7 +458,7 @@ class Dealer:
 
         return config
 
-    def render(self, mode: str = "human", sleep: float = 0, **kwargs):
+    def render(self, mode: str = "human", sleep: float = 0, **kwargs: Any) -> None:
         """Renders poker table. Render mode options are: ascii, human
 
         Parameters
@@ -531,21 +531,24 @@ class Dealer:
         best_hand = np.min(hand_strengths, axis=1)
         hand_won_bool = best_hand.reshape(n, 1) == np.array(hand_strengths)
         hands_won = hand_won_bool.sum(axis=0)
-        win_probs = hands_won / hands_won.sum()
+        win_probs: List[float] = (hands_won / hands_won.sum()).tolist()
         return win_probs
 
     def _all_agreed(self) -> bool:
         # not all agreed if not all players had chance to act
-        if not all(self.street_option):
+        if not self.street_option.all():
             return False
         # all agreed if street commits equal to maximum street commit
-        # or player is all in
-        # or player is not active
-        return all(
-            (self.street_commits == self.street_commits.max())
-            | (self.stacks == 0)
-            | np.logical_not(self.active)
+        street_commits_bool: np.ndarray = (
+            self.street_commits == self.street_commits.max()
         )
+        # or player is all in
+        all_in_bool: np.ndarray = self.stacks == 0
+        # or player is not active
+        active_bool: np.ndarray = np.logical_not(self.active)
+        bool_arr: np.ndarray = street_commits_bool | all_in_bool | active_bool
+        all_agreed: bool = bool_arr.all()
+        return all_agreed
 
     def _bet_sizes(self) -> Tuple[int, int, int]:
         # call difference between commit and maximum commit
@@ -589,7 +592,9 @@ class Dealer:
         # if check/fold closest
         return 0
 
-    def _collect_multiple_bets(self, bets: List[int], street_commits: bool = True):
+    def _collect_multiple_bets(
+        self, bets: List[int], street_commits: bool = True
+    ) -> None:
         bets_arr = np.roll(bets, self.action)
         bets_arr = (self.stacks > 0) * self.active * bets_arr
         if street_commits:
@@ -598,7 +603,7 @@ class Dealer:
         self.pot += int(bets_arr.sum())
         self.stacks -= bets_arr
 
-    def _collect_bet(self, bet: int):
+    def _collect_bet(self, bet: int) -> None:
         # bet only as large as stack size
         bet = min(self.stacks[self.action], bet)
 
@@ -610,9 +615,9 @@ class Dealer:
     def _done(self) -> List[int]:
         if self.street >= self.num_streets or self.active.sum() <= 1:
             # end game
-            out = np.full(self.num_players, 1)
-            return out.tolist()
-        return np.logical_not(self.active).tolist()
+            out: List[int] = np.full(self.num_players, 1).tolist()
+        out = np.logical_not(self.active).astype(int).tolist()
+        return out
 
     def _observation(self, done: bool) -> ObservationDict:
         if done:
@@ -643,7 +648,8 @@ class Dealer:
         elif self.street >= self.num_streets:
             payouts = self._eval_round()
             payouts -= self.pot_commit
-        return payouts.tolist()
+        out: List[int] = payouts.astype(int).tolist()
+        return out
 
     def _eval_hands(
         self, hole_cards: List[List[poker.Card]], community_cards: List[poker.Card]
@@ -703,9 +709,10 @@ class Dealer:
             worst_idx = np.argmin(button_shifted_players)
             worst_pos = involved_players[worst_idx]
             payouts[worst_pos] += remainder
-        return payouts.tolist()
+        out: List[int] = payouts.astype(int).tolist()
+        return out
 
-    def _move_action(self):
+    def _move_action(self) -> "Dealer":
         action = self.action
         for idx in range(1, self.num_players + 1):
             action = (self.action + idx) % self.num_players
@@ -714,3 +721,4 @@ class Dealer:
             else:
                 self.street_option[action] = True
         self.action = action
+        return self
