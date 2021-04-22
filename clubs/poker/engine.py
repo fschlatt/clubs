@@ -1,10 +1,35 @@
 """Classes and functions for running poker games"""
 import itertools
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Type,
+    TypedDict,
+    Union,
+)
 
 import numpy as np
 
 from clubs import error, poker, render
+
+
+class ObservationDict(TypedDict):
+    action: int
+    active: int
+    button: int
+    call: int
+    community_cards: List[poker.Card]
+    hole_cards: List[poker.Card]
+    max_raise: int
+    min_raise: int
+    pot: int
+    stacks: List[int]
+    street_commits: List[int]
 
 
 class Dealer:
@@ -227,7 +252,9 @@ class Dealer:
         )
         return string
 
-    def reset(self, reset_button: bool = False, reset_stacks: bool = False) -> Dict:
+    def reset(
+        self, reset_button: bool = False, reset_stacks: bool = False
+    ) -> ObservationDict:
         """Resets the table. Shuffles the deck, deals new hole cards
         to all players, moves the button and collects blinds and antes.
 
@@ -240,7 +267,7 @@ class Dealer:
 
         Returns
         -------
-        Dict
+        ObservationDict
             observation dictionary
 
         Examples
@@ -299,7 +326,7 @@ class Dealer:
 
         return self._observation(False)
 
-    def step(self, bet: float) -> Tuple[Dict, List[int], List[int]]:
+    def step(self, bet: float) -> Tuple[ObservationDict, List[int], List[int]]:
         """Advances poker game to next player. If the bet is 0, it is
         either considered a check or fold, depending on the previous
         action. The given bet is always rounded to the closest valid bet
@@ -314,7 +341,7 @@ class Dealer:
 
         Returns
         -------
-        Tuple[Dict, List[int], List[int]]
+        Tuple[ObservationDict, List[int], List[int]]
             observation dictionary, payouts for every player, boolean value for every
             player showing if that player is still active in the round
 
@@ -587,18 +614,18 @@ class Dealer:
             return out.tolist()
         return np.logical_not(self.active).tolist()
 
-    def _observation(self, done: bool) -> Dict:
+    def _observation(self, done: bool) -> ObservationDict:
         if done:
             call = min_raise = max_raise = 0
         else:
             call, min_raise, max_raise = self._bet_sizes()
-        observation: dict = {
+        observation: ObservationDict = {
             "action": self.action,
             "active": self.active.tolist(),
             "button": self.button,
             "call": call,
             "community_cards": self.community_cards,
-            "hole_cards": self.hole_cards,
+            "hole_cards": self.hole_cards[self.action],
             "max_raise": max_raise,
             "min_raise": min_raise,
             "pot": self.pot,
