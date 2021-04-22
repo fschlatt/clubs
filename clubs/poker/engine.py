@@ -30,16 +30,18 @@ class Dealer:
         starting from the button e.g. [0, 0, 5] for a three player game
         with a bb ante of 5, passed ints will be expanded to all
         players i.e. pass antes=0 for no antes
-    raise_sizes : Union[float, str, List[Union[float, str]]]
+    raise_sizes : Union[
+            int, Literal["pot", "inf"], List[Union[int, Literal["pot", "inf"]]]
+        ]
         max raise sizes for each street, valid raise sizes are ints,
-        floats, and 'pot', e.g. for a 1-2 limit hold'em the raise sizes
+        'inf', and 'pot', e.g. for a 1-2 limit hold'em the raise sizes
         should be [2, 2, 4, 4] as the small and big bet are 2 and 4.
-        float('inf') can be used for no limit games. pot limit raise
-        sizes can be set using 'pot'. if only a single int, float or
+        'inf' can be used for no limit games. pot limit raise
+        sizes can be set using 'pot'. if only a single int or
         string is passed the value is expanded to a list the length
         of number of streets, e.g. for a standard no limit game pass
         raise_sizes=float('inf')
-    num_raises : Union[float, List[float]]
+    num_raises : Union[int, Literal["inf"], List[Union[int, Literal["inf"]]]]
         max number of bets for each street including preflop, valid
         raise numbers are ints and floats. if only a single int or float
         is passed the value is expanded to a list the length of number
@@ -104,8 +106,10 @@ class Dealer:
         num_streets: int,
         blinds: Union[int, List[int]],
         antes: Union[int, List[int]],
-        raise_sizes: Union[float, str, List[Union[float, str]]],
-        num_raises: Union[float, List[float]],
+        raise_sizes: Union[
+            int, Literal["pot", "inf"], List[Union[int, Literal["pot", "inf"]]]
+        ],
+        num_raises: Union[int, Literal["inf"], List[Union[int, Literal["inf"]]]],
         num_suits: int,
         num_ranks: int,
         num_hole_cards: int,
@@ -148,8 +152,12 @@ class Dealer:
             error_msg.format("community card", num_streets, str(num_community_cards)),
         )
 
-        def clean_rs(raise_size):
-            if isinstance(raise_size, (int, float)):
+        def clean_rs(
+            raise_size: Union[int, Literal["pot", "inf"]]
+        ) -> Union[float, Literal["pot"]]:
+            if raise_size == "inf":
+                return float(raise_size)
+            if isinstance(raise_size, float):
                 return raise_size
             if raise_size == "pot":
                 return raise_size
