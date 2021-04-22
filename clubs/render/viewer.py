@@ -1,4 +1,20 @@
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple, TypedDict
+from .. import poker
+
+
+class RenderConfig(TypedDict):
+    action: int
+    active: List[bool]
+    all_in: List[bool]
+    community_cards: List[poker.Card]
+    dealer: int
+    done: bool
+    hole_cards: List[List[poker.Card]]
+    pot: int
+    payouts: List[int]
+    prev_action: Tuple[int, int, int]
+    street_commits: List[int]
+    stacks: List[int]
 
 
 class PokerViewer:
@@ -16,18 +32,22 @@ class PokerViewer:
     """
 
     def __init__(
-        self, num_players: int, num_hole_cards: int, num_community_cards: int, **kwargs,
+        self,
+        num_players: int,
+        num_hole_cards: int,
+        num_community_cards: int,
+        **kwargs: Any,
     ) -> None:
         self.num_players = num_players
         self.num_hole_cards = num_hole_cards
         self.num_community_cards = num_community_cards
 
-    def render(self, config: Dict[str, Any], sleep: float = 0) -> None:
+    def render(self, config: RenderConfig, sleep: float = 0) -> None:
         """Render the table based on the table configuration
 
         Parameters
         ----------
-        config : Dict[str, Any]
+        config : RenderConfig
             game configuration dictionary
 
         sleep : float, optional

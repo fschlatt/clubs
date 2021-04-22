@@ -80,7 +80,11 @@ class ASCIIViewer(viewer.PokerViewer):
     )
 
     def __init__(
-        self, num_players: int, num_hole_cards: int, num_community_cards: int, **kwargs
+        self,
+        num_players: int,
+        num_hole_cards: int,
+        num_community_cards: int,
+        **kwargs: Any
     ) -> None:
         super(ASCIIViewer, self).__init__(
             num_players, num_hole_cards, num_community_cards, **kwargs
@@ -144,7 +148,9 @@ class ASCIIViewer(viewer.PokerViewer):
 
         return string
 
-    def _parse_players(self, config: Dict[str, Any], done: bool, action: int):
+    def _parse_players(
+        self, config: viewer.RenderConfig, done: bool, action: int
+    ) -> List[str]:
         players = []
         iterator = zip(config["hole_cards"], config["stacks"], config["active"])
         for idx, (hand, stack, active) in enumerate(iterator):
@@ -169,13 +175,13 @@ class ASCIIViewer(viewer.PokerViewer):
             )
         return players
 
-    def render(self, config: Dict[str, Any], sleep: float = 0) -> None:
+    def render(self, config: viewer.RenderConfig, sleep: float = 0) -> None:
         """Render ascii table representation based on the table
         configuration
 
         Parameters
         ----------
-        config : Dict[str, Any]
+        config : viewer.RenderConfig
 
         sleep : float, optional
             sleep time after render, by default 0

@@ -32,7 +32,7 @@ class GraphicViewer(viewer.PokerViewer):
         num_community_cards: int,
         host: str = "127.0.0.1",
         port: int = 0,
-        **kwargs,
+        **kwargs: Any,
     ):
         super(GraphicViewer, self).__init__(
             num_players, num_hole_cards, num_community_cards, **kwargs
@@ -63,7 +63,7 @@ class GraphicViewer(viewer.PokerViewer):
         self._test_flask_conn()
         print(f"clubs table openend at http://{self.host}:{self.port}")
 
-    def _test_socket_conn(self):
+    def _test_socket_conn(self) -> None:
         start = time.time()
         while True:
             try:
@@ -76,7 +76,7 @@ class GraphicViewer(viewer.PokerViewer):
                         "unable to connect to flask process socket"
                     )
 
-    def _test_flask_conn(self):
+    def _test_flask_conn(self) -> None:
         start = time.time()
         response: Optional[http.client.HTTPResponse] = None
         while True:
@@ -92,23 +92,23 @@ class GraphicViewer(viewer.PokerViewer):
 
         assert response and response.status == 200
 
-    def close(self):
+    def close(self) -> None:
         if self.process.is_alive():
             self.socket.send({"content": "close"})
             self.process.terminate()
             self.process.join()
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.close()
 
-    def _run_flask(self):
+    def _run_flask(self) -> None:
         from gevent import monkey
 
         monkey.patch_all()
         import flask
         import flask_socketio
 
-        config = {}
+        config: Dict[str, Any] = {}
         dir_path = os.path.dirname(os.path.realpath(__file__))
         templates_path = os.path.join(dir_path, "resources", "templates")
         static_path = os.path.join(dir_path, "resources", "static")
@@ -118,15 +118,15 @@ class GraphicViewer(viewer.PokerViewer):
         socketio = flask_socketio.SocketIO(app)
 
         @socketio.on("connect")
-        def connect():
+        def connect():  # type: ignore
             socketio.emit("config", config)
 
         @app.route("/")
-        def index():
+        def index():  # type: ignore
             svg = str(self.svg_poker.base_svg)
             return flask.render_template("index.html", svg=flask.Markup(svg))
 
-        def listener():
+        def listener() -> None:
             nonlocal config
             socket = connection.Listener((self.host, self.port + 1))
             conn = socket.accept()
@@ -146,12 +146,12 @@ class GraphicViewer(viewer.PokerViewer):
 
         socketio.run(app, port=self.port)
 
-    def render(self, config: Dict[str, Any], sleep: float = 0) -> None:
+    def render(self, config: viewer.RenderConfig, sleep: float = 0) -> None:
         """Render the table in browser based on the table configuration
 
         Parameters
         ----------
-        config : Dict[str, Any]
+        config : viewer.RenderConfig
             game configuration dictionary
 
         sleep : float, optional
@@ -273,19 +273,19 @@ class _RoundedRectangle:
         return round(x, 2), round(y, 2)
 
     @property
-    def radius_height(self):
+    def radius_height(self) -> float:
         return float(self.height * 0.5)
 
     @property
-    def circle_perimeter(self):
+    def circle_perimeter(self) -> float:
         return float(math.pi * self.height)
 
     @property
-    def straight_width(self):
+    def straight_width(self) -> float:
         return float(self.width - self.height)
 
     @property
-    def perimeter(self):
+    def perimeter(self) -> float:
         return float(self.straight_width * 2 + 2 * math.pi * self.radius_height)
 
 
@@ -306,8 +306,9 @@ class _SVGElement:
         self.name = name
 
     def __str__(self) -> str:
-        string = et.tostring(self.svg, encoding="utf8", method="xml")
-        string = string.decode("utf8")
+        string: str = et.tostring(self.svg, encoding="utf8", method="xml").decode(
+            "utf8"
+        )
         return string
 
     def __repr__(self) -> str:
@@ -350,7 +351,7 @@ class _SVGElement:
         return float(value)
 
     @x.setter
-    def x(self, x: float):
+    def x(self, x: float) -> None:
         self.set_svg_attr("x", str(x))
 
     @property
@@ -361,7 +362,7 @@ class _SVGElement:
         return float(value)
 
     @y.setter
-    def y(self, y: float):
+    def y(self, y: float) -> None:
         self.set_svg_attr("y", str(y))
 
     @property
@@ -372,7 +373,7 @@ class _SVGElement:
         return float(value)
 
     @width.setter
-    def width(self, width: float):
+    def width(self, width: float) -> None:
         self.set_svg_attr("width", str(width))
 
     @property
@@ -383,7 +384,7 @@ class _SVGElement:
         return float(value)
 
     @height.setter
-    def height(self, height: float):
+    def height(self, height: float) -> None:
         self.set_svg_attr("height", str(height))
 
     @property
@@ -391,7 +392,7 @@ class _SVGElement:
         return self.get_svg_attr("id")
 
     @id.setter
-    def id(self, id: str):
+    def id(self, id: str) -> None:
         self.set_svg_attr("id", str(id))
 
     @property
@@ -399,7 +400,7 @@ class _SVGElement:
         return self.get_svg_attr("viewBox")
 
     @view_box.setter
-    def view_box(self, view_box: str):
+    def view_box(self, view_box: str) -> None:
         self.set_svg_attr("viewBox", view_box)
 
     @property
@@ -410,7 +411,7 @@ class _SVGElement:
         return float(view_box.split(" ")[0])
 
     @view_box_x.setter
-    def view_box_x(self, view_box_x: float):
+    def view_box_x(self, view_box_x: float) -> None:
         if self.view_box is not None:
             split_view_box = self.view_box.split(" ")
             split_view_box[0] = str(view_box_x)
@@ -425,7 +426,7 @@ class _SVGElement:
         return float(view_box.split(" ")[1])
 
     @view_box_y.setter
-    def view_box_y(self, view_box_y: float):
+    def view_box_y(self, view_box_y: float) -> None:
         if self.view_box is not None:
             split_view_box = self.view_box.split(" ")
             split_view_box[1] = str(view_box_y)
@@ -440,7 +441,7 @@ class _SVGElement:
         return float(view_box.split(" ")[2])
 
     @view_box_width.setter
-    def view_box_width(self, view_box_width: float):
+    def view_box_width(self, view_box_width: float) -> None:
         if self.view_box is not None:
             split_view_box = self.view_box.split(" ")
             split_view_box[2] = str(view_box_width)
@@ -455,7 +456,7 @@ class _SVGElement:
         return float(view_box.split(" ")[3])
 
     @view_box_height.setter
-    def view_box_height(self, view_box_height: float):
+    def view_box_height(self, view_box_height: float) -> None:
         if self.view_box is not None:
             split_view_box = self.view_box.split(" ")
             split_view_box[3] = str(view_box_height)
