@@ -165,17 +165,17 @@ class GraphicViewer(viewer.PokerViewer):
         ...     'active': [True, True], # List[bool] - list of active players
         ...     'all_in': [False, False], # List[bool] - list of all in players
         ...     'community_cards': [], # List[Card] - list of community cards
-        ...     'dealer': 0, # int - position of dealer
+        ...     'button': 0, # int - position of dealer button
         ...     'done': False, # bool - toggle if hand is completed
         ...     'hole_cards': [[Card("Ah")], [Card("Ac")]], # List[List[Card]] -
         ...                                                 # list of list of hole card
         ...     'pot': 10, # int - chips in pot
         ...     'payouts': [0, 0], # List[int] - list of chips won for each player
-        ...     'prev_action': [1, 10, 0], # Tuple[int, int, int] -
-        ...                                # last position bet and fold
-        ...     'street_commits': [10, 20] # List[int] - list of number of
-        ...                                # chips added to pot from each
-        ...                                # player on current street
+        ...     'prev_action': (1, 10, False], # Tuple[int, int, int] -
+        ...                                    # last position bet and fold
+        ...     'street_commits': [10, 20], # List[int] - list of number of
+        ...                                 # chips added to pot from each
+        ...                                 # player on current street
         ...     'stacks': [100, 100] # List[int] - list of stack sizes
         ... }
         """
@@ -212,17 +212,10 @@ def _convert_hands(
     return _cards
 
 
-def _jsonify(config: Union[Dict[str, Any]]) -> Dict[str, Any]:
-    _config: Dict[str, Any] = {}
-    for key, value in config.items():
-        if "cards" in key:
-            cards = _convert_hands(value)
-            _config[key] = cards
-        else:
-            try:
-                _config[key] = int(value)
-            except (ValueError, TypeError):
-                _config[key] = value
+def _jsonify(config: viewer.RenderConfig) -> Dict[str, Any]:
+    _config: Dict[str, Any] = {**config}
+    _config["hole_cards"] = _convert_hands(_config["hole_cards"])
+    _config["community_cards"] = _convert_hands(_config["community_cards"])
     return _config
 
 

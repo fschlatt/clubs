@@ -1,11 +1,11 @@
 import os
 import time
-from typing import Any, Dict, List
+from typing import Any, List
 
 from . import viewer
 
 
-def _parse_action_string(config: Dict[str, Any], done: bool) -> str:
+def _parse_action_string(config: viewer.RenderConfig, done: bool) -> str:
     action_string = ""
 
     prev_action = config["prev_action"]
@@ -26,7 +26,7 @@ def _parse_action_string(config: Dict[str, Any], done: bool) -> str:
     return action_string
 
 
-def _parse_win_string(config: Dict[str, Any], done: bool) -> str:
+def _parse_win_string(config: viewer.RenderConfig, done: bool) -> str:
     win_string = ""
     if done:
         win_string = "Player"
@@ -97,7 +97,7 @@ class ASCIIViewer(viewer.PokerViewer):
 
         self.player_pos = self.POS_DICT[num_players]
 
-    def _parse_string(self, config: Dict[str, Any]) -> str:
+    def _parse_string(self, config: viewer.RenderConfig) -> str:
 
         action = config["action"]
         button = config["button"]
@@ -126,8 +126,8 @@ class ASCIIViewer(viewer.PokerViewer):
         # button + player positions
         str_config["b{}".format(self.player_pos[button])] = "D "
         street_commits = config["street_commits"]
-        all_in = config["all_in"]
-        iterator = zip(players, street_commits, positions, all_in)
+        all_ins = config["all_in"]
+        iterator = zip(players, street_commits, positions, all_ins)
         for player, street_commit, pos, all_in in iterator:
             str_config[pos] = player
             str_config[pos + "c"] = "{:,}".format(street_commit)
@@ -194,17 +194,17 @@ class ASCIIViewer(viewer.PokerViewer):
         ...     'active': [True, True], # List[bool] - list of active players
         ...     'all_in': [False, False], # List[bool] - list of all in players
         ...     'community_cards': [], # List[Card] - list of community cards
-        ...     'dealer': 0, # int - position of dealer
+        ...     'button': 0, # int - position of dealer button
         ...     'done': False, # bool - toggle if hand is completed
         ...     'hole_cards': [[Card("Ah")], [Card("Ac")]], # List[List[Card]] -
         ...                                                 # list of list of hole card
         ...     'pot': 10, # int - chips in pot
         ...     'payouts': [0, 0], # List[int] - list of chips won for each player
-        ...     'prev_action': [1, 10, 0], # Tuple[int, int, int] -
-        ...                                # last position bet and fold
-        ...     'street_commits': [10, 20] # List[int] - list of number of
-        ...                                # chips added to pot from each
-        ...                                # player on current street
+        ...     'prev_action': (1, 10, False], # Tuple[int, int, int] -
+        ...                                    # last position bet and fold
+        ...     'street_commits': [10, 20], # List[int] - list of number of
+        ...                                 # chips added to pot from each
+        ...                                 # player on current street
         ...     'stacks': [100, 100] # List[int] - list of stack sizes
         ... }
         """
