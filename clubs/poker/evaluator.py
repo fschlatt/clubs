@@ -3,7 +3,7 @@ import functools
 import itertools
 import operator
 from timeit import default_timer as timer
-from typing import Dict, Iterator, List, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple
 
 from clubs import error
 
@@ -27,7 +27,7 @@ class Evaluator(object):
     low_end_straight : bool, optional
         toggle to include the low ace straight within valid hands, by
         default True
-    order : list, optional
+    order : List[str], optional
         optional custom order of hand ranks, must be permutation of
         ['sf', 'fk', 'fh', 'fl', 'st', 'tk', 'tp', 'pa', 'hc']. if
         order=None, hands are ranked by rarity. by default None
@@ -40,7 +40,7 @@ class Evaluator(object):
         cards_for_hand: int,
         mandatory_hole_cards: int = 0,
         low_end_straight: bool = True,
-        order: list = None,
+        order: Optional[List[str]] = None,
     ):
 
         if cards_for_hand < 1 or cards_for_hand > 5:
@@ -196,7 +196,7 @@ class LookupTable:
     low_end_straight : bool, optional
         toggle to include straights where ace is the lowest card, by
         default True
-    order : List[str], optional
+    order : Optional[List[str]], optional
         custom hand rank order, if None hands are ranked by rarity, by
         default None
     """
@@ -209,7 +209,7 @@ class LookupTable:
         ranks: int,
         cards_for_hand: int,
         low_end_straight: bool = True,
-        order: List[str] = None,
+        order: Optional[List[str]] = None,
     ):
 
         if order is not None:
