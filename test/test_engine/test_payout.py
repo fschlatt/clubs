@@ -1,7 +1,7 @@
 import clubs
 
 
-def test_split_pot():
+def test_split_pot() -> None:
 
     config = clubs.configs.NO_LIMIT_HOLDEM_NINE_PLAYER
 
@@ -19,8 +19,9 @@ def test_split_pot():
         ["3d", "4s"],
     ]
     comm_cards = ["4d", "5h", "7c", "Ac", "Kh"]
-    top_cards = [card for hand in hands for card in hand] + comm_cards
-    top_cards = [clubs.Card(card) for card in top_cards]
+    top_cards = [clubs.Card(card) for hand in hands for card in hand] + [
+        clubs.Card(card) for card in comm_cards
+    ]
     dealer.deck = dealer.deck.trick(top_cards)
 
     obs = dealer.reset(reset_button=True, reset_stacks=True)
@@ -69,7 +70,7 @@ def test_split_pot():
     )
 
 
-def test_all_in():
+def test_all_in() -> None:
 
     config = clubs.configs.NO_LIMIT_HOLDEM_NINE_PLAYER
 
@@ -87,8 +88,9 @@ def test_all_in():
         ["3d", "4s"],
     ]
     comm_cards = ["4d", "5h", "7c", "Ac", "Kh"]
-    top_cards = [card for hand in hands for card in hand] + comm_cards
-    top_cards = [clubs.Card(card) for card in top_cards]
+    top_cards = [clubs.Card(card) for hand in hands for card in hand] + [
+        clubs.Card(card) for card in comm_cards
+    ]
     dealer.deck = dealer.deck.trick(top_cards)
 
     dealer.stacks[0] = dealer.stacks[0] - 180
@@ -130,7 +132,7 @@ def test_all_in():
     )
 
 
-def test_all_in_split_pot():
+def test_all_in_split_pot() -> None:
 
     config = clubs.configs.NO_LIMIT_HOLDEM_NINE_PLAYER
 
@@ -148,8 +150,9 @@ def test_all_in_split_pot():
         ["3d", "4s"],
     ]
     comm_cards = ["4d", "5h", "7c", "Ac", "Kh"]
-    top_cards = [card for hand in hands for card in hand] + comm_cards
-    top_cards = [clubs.Card(card) for card in top_cards]
+    top_cards = [clubs.Card(card) for hand in hands for card in hand] + [
+        clubs.Card(card) for card in comm_cards
+    ]
     dealer.deck = dealer.deck.trick(top_cards)
 
     dealer.stacks[0] = dealer.stacks[0] - 180

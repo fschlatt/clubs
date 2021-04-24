@@ -3,7 +3,7 @@ import random
 import clubs
 
 
-def test_button_move():
+def test_button_move() -> None:
 
     random.seed(42)
 
@@ -48,7 +48,7 @@ def test_button_move():
     assert obs["action"] == 4
 
 
-def test_inactive_players():
+def test_inactive_players() -> None:
 
     random.seed(42)
 

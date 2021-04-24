@@ -6,7 +6,7 @@ import clubs
 from clubs import error
 
 
-def test_all_but_one_fold():
+def test_all_but_one_fold() -> None:
 
     config = clubs.configs.NO_LIMIT_HOLDEM_SIX_PLAYER
 
@@ -30,7 +30,7 @@ def test_all_but_one_fold():
     )
 
 
-def test_all_all_in():
+def test_all_all_in() -> None:
     random.seed(42)
 
     config = clubs.configs.NO_LIMIT_HOLDEM_SIX_PLAYER
@@ -55,7 +55,7 @@ def test_all_all_in():
     )
 
 
-def test_bet_after_round_end():
+def test_bet_after_round_end() -> None:
 
     random.seed(42)
 
@@ -80,7 +80,7 @@ def test_bet_after_round_end():
     assert obs["action"] == -1
 
 
-def test_too_few_players():
+def test_too_few_players() -> None:
 
     random.seed(42)
 
@@ -91,9 +91,6 @@ def test_too_few_players():
     _ = dealer.reset(reset_button=True, reset_stacks=True)
 
     bet = 200
-    obs = {}
-    payouts = []
-    done = []
     for _ in range(6):
         obs, payouts, done = dealer.step(bet)
 

@@ -9,12 +9,12 @@ import pytest
 from clubs.render import graphic
 
 
-def test_init():
+def test_init() -> None:
     viewer = graphic.GraphicViewer(2, 2, 5)
     assert viewer.svg_poker.base_svg.name == "base"
 
 
-def test_svg():
+def test_svg() -> None:
     with pytest.raises(FileNotFoundError):
         graphic._SVGElement("foo")
 
@@ -61,7 +61,7 @@ def test_svg():
     assert base.view_box == "2 2 2 2"
 
 
-def test_rectangle():
+def test_rectangle() -> None:
     rectangle = graphic._RoundedRectangle(0, 0, 100, 100)
 
     x, y = rectangle.edge(0)
@@ -78,7 +78,7 @@ def test_rectangle():
     assert pytest.approx(y, 0)
 
 
-def test_port():
+def test_port() -> None:
     port = 6789
     viewer = graphic.GraphicViewer(20, 2, 5, port=port)
     assert viewer.port == port

@@ -5,7 +5,7 @@ import pytest
 from clubs import error, poker
 
 
-def test_draw():
+def test_draw() -> None:
 
     deck = poker.Deck(2, 3)
 
@@ -22,7 +22,7 @@ def test_draw():
     assert len(cards) == 0
 
 
-def test_trick():
+def test_trick() -> None:
     random.seed(42)
 
     deck = poker.Deck(4, 13).trick([poker.Card("Ah"), poker.Card("2s")])
@@ -43,7 +43,7 @@ def test_trick():
     assert cards[1] != poker.Card("2s")
 
 
-def test_invalid_init():
+def test_invalid_init() -> None:
     with pytest.raises(error.InvalidRankError):
         poker.Card("1s")
     with pytest.raises(error.InvalidRankError):
@@ -61,7 +61,7 @@ def test_invalid_init():
         poker.Deck(5, 1)
 
 
-def test_ops():
+def test_ops() -> None:
     card = poker.Card("Ac")
 
     assert card & card
@@ -77,7 +77,7 @@ def test_ops():
         assert card == 0
 
 
-def test_str_repr():
+def test_str_repr() -> None:
     card = poker.Card("Ac")
     assert repr(card) == f"Card ({id(card)}): {card}"
 

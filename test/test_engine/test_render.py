@@ -8,45 +8,45 @@ from contextlib import redirect_stdout
 from typing import Optional
 from xml.etree import ElementTree as et
 
-import numpy as np
 import pytest
 
 import clubs
-from clubs import error, render
+from clubs import error, poker, render
 
 
 @pytest.fixture
-def dealer():
+def dealer() -> clubs.Dealer:
     config = clubs.configs.NO_LIMIT_HOLDEM_SIX_PLAYER
 
-    dealer_ = clubs.poker.Dealer(**config)
+    dealer = clubs.Dealer(**config)
 
-    dealer_._render_config = lambda: {
-        "action": 0,
-        "active": np.array([1, 1]),
-        "all_in": np.array([0, 0]),
-        "community_cards": [clubs.Card("Ac")],
-        "button": 0,
-        "done": 0.0,
-        "hole_cards": [
-            [clubs.Card("Ah"), clubs.Card("Ad")],
-            [clubs.Card("Ks"), clubs.Card("Kd")],
-        ],
-        "pot": 20,
-        "payouts": np.array([0, 0]),
-        "prev_action": None,
-        "street_commits": np.array([0, 0]),
-        "stacks": np.array([200, 200]),
-    }
-    return dealer_
+    def _render_config() -> render.viewer.RenderConfig:
+        return {
+            "action": 0,
+            "active": [True, True],
+            "all_in": [False, False],
+            "community_cards": [],
+            "button": 0,
+            "done": False,
+            "hole_cards": [[poker.Card("Ah"), poker.Card("Ad")], []],
+            "pot": 10,
+            "payouts": [0, 0],
+            "prev_action": (1, 10, False),
+            "street_commits": [10, 20],
+            "stacks": [200, 200],
+        }
+
+    dealer._render_config = _render_config  # type: ignore
+
+    return dealer
 
 
-def test_error(dealer: clubs.Dealer):
+def test_error(dealer: clubs.Dealer) -> None:
     with pytest.raises(error.InvalidRenderModeError):
         dealer.render("lala")
 
 
-def test_ascii(dealer: clubs.Dealer):
+def test_ascii(dealer: clubs.Dealer) -> None:
     dealer.viewer = None
     stdout = io.StringIO()
     with redirect_stdout(stdout):
@@ -62,7 +62,7 @@ def test_ascii(dealer: clubs.Dealer):
     assert all(sub_string in string for sub_string in sub_strings)
 
 
-def test_human(dealer: clubs.Dealer):
+def test_human(dealer: clubs.Dealer) -> None:
     dealer.render()
 
     assert isinstance(dealer.viewer, render.GraphicViewer)

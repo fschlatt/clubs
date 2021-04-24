@@ -3,7 +3,7 @@ import pytest
 from clubs import error, poker
 
 
-def test_init():
+def test_init() -> None:
 
     with pytest.raises(error.InvalidHandSizeError):
         poker.Evaluator(4, 13, 0)
@@ -13,7 +13,7 @@ def test_init():
         poker.LookupTable(4, 13, 5, order=["lala"])
 
 
-def test_str_repr():
+def test_str_repr() -> None:
 
     evaluator = poker.Evaluator(4, 13, 5)
 
@@ -35,7 +35,7 @@ def test_str_repr():
     assert repr(evaluator) == repr_string
 
 
-def test_hand_rank():
+def test_hand_rank() -> None:
 
     evaluator = poker.Evaluator(4, 13, 5)
 
@@ -47,12 +47,12 @@ def test_hand_rank():
         evaluator.get_rank_class(7463)
 
 
-def test_speed_test():
+def test_speed_test() -> None:
     evaluator = poker.Evaluator(4, 13, 5)
     assert evaluator.speed_test() < 1
 
 
-def test_1_card():
+def test_1_card() -> None:
     # no community cards
     evaluator = poker.Evaluator(1, 3, 1)
     hand1 = [poker.Card("As")]
@@ -87,7 +87,7 @@ def test_1_card():
     assert evaluator.evaluate(hand1, []) == evaluator.evaluate(hand2, [])
 
 
-def test_2_card():
+def test_2_card() -> None:
     # 1 suit
     evaluator = poker.Evaluator(1, 3, 2)
     hand1 = [poker.Card("Ks")]
@@ -110,7 +110,7 @@ def test_2_card():
     assert evaluator.evaluate(hand1, comm_cards) < evaluator.evaluate(hand2, comm_cards)
 
 
-def test_3_card():
+def test_3_card() -> None:
     # 1 suit
     # straight > high card
     evaluator = poker.Evaluator(1, 13, 3)
@@ -184,7 +184,7 @@ def test_3_card():
     assert evaluator.evaluate(hand1, comm_cards) < evaluator.evaluate(hand2, comm_cards)
 
 
-def test_4_card():
+def test_4_card() -> None:
     # 1 suit
     # straight > high card
     evaluator = poker.Evaluator(1, 13, 4)
@@ -282,7 +282,7 @@ def test_4_card():
     assert evaluator.evaluate(hand1, comm_cards) < evaluator.evaluate(hand2, comm_cards)
 
 
-def test_5_card():
+def test_5_card() -> None:
     # 1 suit
     # straight > high card
     evaluator = poker.Evaluator(1, 13, 5)
@@ -459,7 +459,7 @@ def test_5_card():
     assert evaluator.evaluate(hand1, comm_cards) < evaluator.evaluate(hand2, comm_cards)
 
 
-def test_short_deck():
+def test_short_deck() -> None:
 
     order = ["sf", "fk", "fl", "fh", "st", "tk", "tp", "pa", "hc"]
 
@@ -477,7 +477,7 @@ def test_short_deck():
     assert evaluator.evaluate(hand1, comm_cards) < evaluator.evaluate(hand2, comm_cards)
 
 
-def test_mandatory_hole_cards():
+def test_mandatory_hole_cards() -> None:
 
     evaluator = poker.Evaluator(4, 13, 5, 2)
 

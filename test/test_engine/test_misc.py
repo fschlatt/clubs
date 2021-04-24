@@ -4,7 +4,7 @@ import clubs
 from clubs import error
 
 
-def test_game():
+def test_game() -> None:
 
     config = clubs.configs.LEDUC_TWO_PLAYER
 
@@ -34,7 +34,7 @@ def test_game():
     assert payout[0] == 7
 
 
-def test_heads_up():
+def test_heads_up() -> None:
 
     config = clubs.configs.NO_LIMIT_HOLDEM_TWO_PLAYER
 
@@ -55,9 +55,9 @@ def test_heads_up():
     assert obs["max_raise"] == 198
 
 
-def test_init():
+def test_init() -> None:
 
-    config = {**clubs.configs.NO_LIMIT_HOLDEM_TWO_PLAYER}
+    config = clubs.configs.NO_LIMIT_HOLDEM_TWO_PLAYER.copy()
 
     blinds = config["blinds"]
     antes = config["antes"]
@@ -110,13 +110,13 @@ def test_init():
     config["num_raises"] = num_raises
     config["num_community_cards"] = num_community_cards
 
-    config["raise_sizes"] = "lala"
+    config["raise_sizes"] = "lala"  # type: ignore
     with pytest.raises(error.InvalidRaiseSizeError):
         clubs.poker.Dealer(**config)
     config["raise_sizes"] = raise_sizes
 
 
-def test_str_repr():
+def test_str_repr() -> None:
 
     config = clubs.configs.NO_LIMIT_HOLDEM_TWO_PLAYER
 
@@ -130,7 +130,7 @@ def test_str_repr():
     assert repr(dealer) == string
 
 
-def test_init_step():
+def test_init_step() -> None:
 
     config = clubs.configs.NO_LIMIT_HOLDEM_TWO_PLAYER
 
@@ -140,13 +140,13 @@ def test_init_step():
         dealer.step(0)
 
 
-def test_win_probabilities():
+def test_win_probabilities() -> None:
     config = clubs.configs.NO_LIMIT_HOLDEM_NINE_PLAYER
     dealer = clubs.poker.Dealer(**config)
     dealer.reset()
 
     win_probs = dealer.win_probabilities(n=100)
-    assert pytest.approx(win_probs.sum(), 1)
+    assert pytest.approx(sum(win_probs), 1)
 
     dealer.step(-1)
     dealer.step(2)
@@ -158,4 +158,7 @@ def test_win_probabilities():
     dealer.step(1)
     dealer.step(0)
     win_probs = dealer.win_probabilities()
-    assert all(win_probs[~dealer.active] == 0)
+    assert all(
+        win_prob != 0 or not active
+        for win_prob, active in zip(win_probs, dealer.active)
+    )

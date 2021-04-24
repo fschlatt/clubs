@@ -1,7 +1,7 @@
 import clubs
 
 
-def test_bet_cleaning():
+def test_bet_cleaning() -> None:
     assert clubs.poker.Dealer._clean_bet(0, 2, 4, 200) == 0
     assert clubs.poker.Dealer._clean_bet(-1, 2, 4, 200) == -0
     assert clubs.poker.Dealer._clean_bet(1, 0, 4, 200) == 0
@@ -9,7 +9,7 @@ def test_bet_cleaning():
     assert clubs.poker.Dealer._clean_bet(2000, 0, 4, 200) == 200
 
 
-def test_limit_bet_size():
+def test_limit_bet_size() -> None:
 
     config = clubs.configs.LIMIT_HOLDEM_SIX_PLAYER
 
@@ -43,7 +43,7 @@ def test_limit_bet_size():
     assert not all(obs["active"])
 
 
-def test_all_in_bet_size():
+def test_all_in_bet_size() -> None:
     config = clubs.configs.NO_LIMIT_HOLDEM_TWO_PLAYER
 
     dealer = clubs.poker.Dealer(**config)
@@ -58,9 +58,9 @@ def test_all_in_bet_size():
     assert obs["pot"] == 52
 
 
-def test_incomplete_raise():
+def test_incomplete_raise() -> None:
 
-    config = dict(**clubs.configs.NO_LIMIT_HOLDEM_SIX_PLAYER)
+    config = clubs.configs.NO_LIMIT_HOLDEM_SIX_PLAYER.copy()
 
     dealer = clubs.poker.Dealer(**config)
 
@@ -94,7 +94,7 @@ def test_incomplete_raise():
     assert obs["max_raise"] == 0
 
 
-def test_pot_limit_bet_size():
+def test_pot_limit_bet_size() -> None:
 
     config = clubs.configs.POT_LIMIT_OMAHA_SIX_PLAYER
 
@@ -118,7 +118,7 @@ def test_pot_limit_bet_size():
     bet = 4
 
 
-def test_bet_rounding():
+def test_bet_rounding() -> None:
 
     config = clubs.configs.NO_LIMIT_HOLDEM_NINE_PLAYER
 
@@ -152,7 +152,7 @@ def test_bet_rounding():
     assert obs["street_commits"][8] == 10
 
 
-def test_big_blind_raise_chance():
+def test_big_blind_raise_chance() -> None:
 
     config = clubs.configs.NO_LIMIT_HOLDEM_SIX_PLAYER
 
