@@ -13,7 +13,7 @@ class PokerConfig(TypedDict):
     num_suits: int
     num_ranks: int
     num_hole_cards: int
-    num_community_cards: List[int]
+    num_community_cards: Union[int, List[int]]
     num_cards_for_hand: int
     mandatory_num_hole_cards: int
     start_stack: int
