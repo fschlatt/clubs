@@ -9,7 +9,7 @@ from clubs import error, poker, render
 
 class ObservationDict(TypedDict):
     action: int
-    active: int
+    active: List[bool]
     button: int
     call: int
     community_cards: List[poker.Card]
