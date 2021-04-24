@@ -171,12 +171,12 @@ class Dealer:
         ) -> Union[float, Literal["pot"]]:
             if raise_size == "inf":
                 return float(raise_size)
-            if isinstance(raise_size, float):
-                return raise_size
             if raise_size == "pot":
                 return raise_size
+            if isinstance(raise_size, int):
+                return raise_size
             raise error.InvalidRaiseSizeError(
-                f"unknown raise size, expected one of (int, float, 'pot'),"
+                f"unknown raise size, expected one of (int, 'inf', 'pot'),"
                 f" got {raise_size}"
             )
 
