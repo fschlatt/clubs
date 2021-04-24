@@ -315,7 +315,7 @@ class Dealer:
 
         return self._observation(False)
 
-    def step(self, bet: float) -> Tuple[ObservationDict, List[int], List[int]]:
+    def step(self, bet: float) -> Tuple[ObservationDict, List[int], List[bool]]:
         """Advances poker game to next player. If the bet is 0, it is
         either considered a check or fold, depending on the previous
         action. The given bet is always rounded to the closest valid bet
@@ -330,7 +330,7 @@ class Dealer:
 
         Returns
         -------
-        Tuple[ObservationDict, List[int], List[int]]
+        Tuple[ObservationDict, List[int], List[bool]]
             observation dictionary, payouts for every player, boolean value for every
             player showing if that player is still active in the round
 
@@ -601,11 +601,11 @@ class Dealer:
         self.street_commits[self.action] += bet
         self.stacks[self.action] -= bet
 
-    def _done(self) -> List[int]:
+    def _done(self) -> List[bool]:
         if self.street >= self.num_streets or self.active.sum() <= 1:
             # end game
-            out: List[int] = np.full(self.num_players, 1).tolist()
-        out = np.logical_not(self.active).astype(int).tolist()
+            return [True] * self.num_players
+        out: List[bool] = np.logical_not(self.active).astype(bool).tolist()
         return out
 
     def _observation(self, done: bool) -> ObservationDict:
