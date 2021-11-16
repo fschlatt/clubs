@@ -1,3 +1,5 @@
+import random
+
 import pytest
 
 import clubs
@@ -159,6 +161,9 @@ def test_init_step() -> None:
 
 
 def test_win_probabilities() -> None:
+
+    random.seed(1)
+
     config = clubs.configs.NO_LIMIT_HOLDEM_NINE_PLAYER
     dealer = clubs.poker.Dealer(**config)
     dealer.reset()

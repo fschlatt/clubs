@@ -487,14 +487,9 @@ class Dealer:
 
         self.viewer.render(config, sleep)
 
-    def win_probabilities(self, verbose: bool = False) -> List[float]:
+    def win_probabilities(self) -> List[float]:
         """Computes win probabilities for each player by exhaustively checking every
         possible combination of remaining community cards.
-
-        Parameters
-        ----------
-        verbose : bool, optional
-            toggle to print progress of computing win probabilities, default False
 
         Returns
         -------
@@ -505,13 +500,10 @@ class Dealer:
         num_additional_comm_cards = sum(self.num_community_cards) - len(
             self.community_cards
         )
-        num_comm_combinations = poker.evaluator._ncr(
-            len(self.deck.cards), num_additional_comm_cards
-        )
         comm_combinations = itertools.combinations(
             self.deck.cards, num_additional_comm_cards
         )
-        hands_won = {player_idx: 0 for player_idx in range(self.num_players)}
+        hands_won = [0] * self.num_players
         for additional_comm_cards in comm_combinations:
             community_cards = self.community_cards + list(additional_comm_cards)
             hand_strengths = self._eval_hands(self.hole_cards, community_cards)
@@ -519,9 +511,9 @@ class Dealer:
             for player_idx, hand_strength in enumerate(hand_strengths):
                 if hand_strength == best_hand:
                     hands_won[player_idx] += 1
+        num_won = sum(hands_won)
         win_probs = [
-            hands_won[player_idx] / num_comm_combinations
-            for player_idx in range(self.num_players)
+            hands_won[player_idx] / num_won for player_idx in range(self.num_players)
         ]
         return win_probs
 
@@ -592,7 +584,7 @@ class Dealer:
         self, bets: List[int], street_commits: bool = True
     ) -> None:
         # roll list to action
-        bets = bets[-self.action :] + bets[: -self.action]
+        bets = bets[-self.action :] + bets[: -self.action]  # noqa: E203
         bets = [
             (stack > 0) * active * bet
             for stack, active, bet in zip(self.stacks, self.active, bets)
