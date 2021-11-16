@@ -1,8 +1,7 @@
 """Classes and functions for running poker games"""
 import itertools
-from typing import Any, Iterator, List, Literal, Optional, Tuple, Type, TypedDict, Union
-
-import numpy as np
+import operator
+from typing import Any, List, Literal, Optional, Tuple, Type, TypedDict, Union
 
 from clubs import error, poker, render
 
@@ -183,8 +182,8 @@ class Dealer:
         # config
         self.num_players = num_players
         self.num_streets = num_streets
-        self.blinds = np.array(blinds)
-        self.antes = np.array(antes)
+        self.blinds = blinds
+        self.antes = antes
         self.big_blind = blinds[1]
         self.raise_sizes = [clean_rs(raise_size) for raise_size in raise_sizes]
         self.num_raises = [float(raise_num) for raise_num in num_raises]
@@ -198,7 +197,7 @@ class Dealer:
 
         # dealer
         self.action = -1
-        self.active: np.ndarray = np.zeros(self.num_players, dtype=bool)
+        self.active = [False] * self.num_players
         self.button = 0
         self.community_cards: List[poker.Card] = []
         self.deck = poker.Deck(self.num_suits, self.num_ranks)
@@ -214,13 +213,11 @@ class Dealer:
         self.hole_cards: List[List[poker.Card]] = []
         self.largest_raise = 0
         self.pot = 0
-        self.pot_commit = np.zeros(self.num_players, dtype=np.int32)
-        self.stacks: np.ndarray = np.full(
-            self.num_players, self.start_stack, dtype=np.int32
-        )
+        self.pot_commits = [0] * self.num_players
+        self.stacks = [self.start_stack] * self.num_players
         self.street = 0
-        self.street_commits: np.ndarray = np.zeros(self.num_players, dtype=np.int32)
-        self.street_option: np.ndarray = np.zeros(self.num_players, dtype=bool)
+        self.street_commits = [0] * self.num_players
+        self.street_option = [False] * self.num_players
         self.street_raises = 0
 
         # render
@@ -277,11 +274,11 @@ class Dealer:
         ...  'street_commits': [0, 0]}
         """
         if reset_stacks:
-            self.active.fill(1)
-            self.stacks = np.full(self.num_players, self.start_stack)
+            self.active = [True] * self.num_players
+            self.stacks = [self.start_stack] * self.num_players
         else:
-            self.active = self.stacks > 0
-            if self.active.sum() <= 1:
+            self.active = [stack > 0 for stack in self.stacks]
+            if sum(self.active) <= 1:
                 raise error.TooFewActivePlayersError(
                     "not enough players have chips, set reset_stacks=True"
                 )
@@ -298,18 +295,18 @@ class Dealer:
         ]
         self.largest_raise = self.big_blind
         self.pot = 0
-        self.pot_commit.fill(0)
+        self.pot_commits = [0] * self.num_players
         self.street = 0
-        self.street_commits.fill(0)
-        self.street_option.fill(0)
+        self.street_commits = [0] * self.num_players
+        self.street_option = [False] * self.num_players
         self.street_raises = 0
 
         self.action = self.button
         # in heads up button posts small blind
         if self.num_players > 2:
             self._move_action()
-        self._collect_multiple_bets(bets=self.antes.tolist(), street_commits=False)
-        self._collect_multiple_bets(bets=self.blinds.tolist(), street_commits=True)
+        self._collect_multiple_bets(bets=self.antes, street_commits=False)
+        self._collect_multiple_bets(bets=self.blinds, street_commits=True)
         self._move_action()
         self._move_action()
 
@@ -355,7 +352,7 @@ class Dealer:
         ...  [False, False])
         """
         if self.action == -1:
-            if self.active.any():
+            if any(self.active):
                 done = self._done()
                 payouts = self._payouts()
                 observation = self._observation(all(done))
@@ -371,7 +368,7 @@ class Dealer:
 
         # only fold if player cannot check
         if call and ((bet < call) or fold):
-            self.active[self.action] = 0
+            self.active[self.action] = False
             bet = 0
 
         # if bet is full raise record as largest raise
@@ -395,8 +392,11 @@ class Dealer:
             while True:
                 self.street += 1
                 full_streets = self.street >= self.num_streets
-                all_in = self.active * (self.stacks == 0)
-                all_all_in = self.active.sum() - all_in.sum() <= 1
+                all_in = [
+                    bool(active * (stack == 0))
+                    for active, stack in zip(self.active, self.stacks)
+                ]
+                all_all_in = sum(self.active) - sum(all_in) <= 1
                 if full_streets:
                     break
                 self.community_cards += self.deck.draw(
@@ -404,8 +404,8 @@ class Dealer:
                 )
                 if not all_all_in:
                     break
-            self.street_commits.fill(0)
-            self.street_option = np.logical_not(self.active).astype(bool)
+            self.street_commits = [0] * self.num_players
+            self.street_option = [not active for active in self.active]
             self.street_raises = 0
 
         done = self._done()
@@ -413,22 +413,30 @@ class Dealer:
         if all(done):
             self.action = -1
             self.pot = 0
-            self.stacks += payouts + self.pot_commit
+            self.stacks = [
+                stack + payout + pot_commit
+                for stack, payout, pot_commit in zip(
+                    self.stacks, payouts, self.pot_commits
+                )
+            ]
         observation = self._observation(all(done))
         return observation, payouts, done
 
     def _render_config(self) -> render.viewer.RenderConfig:
         action = int(self.action)
-        active = self.active.tolist()
-        all_in = (self.active * (self.stacks == 0)).tolist()
+        active = self.active
+        all_in = [
+            bool(active * (stack == 0))
+            for active, stack in zip(self.active, self.stacks)
+        ]
         community_cards = self.community_cards
         button = int(self.button)
         done = all(self._done())
         hole_cards = self.hole_cards
         pot = int(self.pot)
         payouts = self._payouts()
-        street_commits = self.street_commits.tolist()
-        stacks = self.stacks.tolist()
+        street_commits = self.street_commits
+        stacks = self.stacks
 
         config: render.viewer.RenderConfig = {
             "action": action,
@@ -479,9 +487,14 @@ class Dealer:
 
         self.viewer.render(config, sleep)
 
-    def win_probabilities(self) -> List[float]:
+    def win_probabilities(self, verbose: bool = False) -> List[float]:
         """Computes win probabilities for each player by exhaustively checking every
         possible combination of remaining community cards.
+
+        Parameters
+        ----------
+        verbose : bool, optional
+            toggle to print progress of computing win probabilities, default False
 
         Returns
         -------
@@ -497,7 +510,7 @@ class Dealer:
         )
         comm_combinations = itertools.combinations(
             self.deck.cards, num_additional_comm_cards
-                )
+        )
         hands_won = {player_idx: 0 for player_idx in range(self.num_players)}
         for additional_comm_cards in comm_combinations:
             community_cards = self.community_cards + list(additional_comm_cards)
@@ -514,32 +527,36 @@ class Dealer:
 
     def _all_agreed(self) -> bool:
         # not all agreed if not all players had chance to act
-        if not self.street_option.all():
+        if not all(self.street_option):
             return False
         # all agreed if street commits equal to maximum street commit
-        street_commits_bool: np.ndarray = (
-            self.street_commits == self.street_commits.max()
-        )
+        street_commit = [
+            street_commit == max(self.street_commits)
+            for street_commit in self.street_commits
+        ]
         # or player is all in
-        all_in_bool: np.ndarray = self.stacks == 0
+        all_in = [stack == 0 for stack in self.stacks]
         # or player is not active
-        active_bool: np.ndarray = np.logical_not(self.active)
-        bool_arr: np.ndarray = street_commits_bool | all_in_bool | active_bool
-        all_agreed: bool = bool_arr.all()
-        return all_agreed
+        active = [not active for active in self.active]
+        agreed = [
+            _street_commit or _all_in or _active
+            for _street_commit, _all_in, _active in zip(street_commit, all_in, active)
+        ]
+        return all(agreed)
 
     def _bet_sizes(self) -> Tuple[int, int, int]:
         # call difference between commit and maximum commit
-        call = self.street_commits.max() - self.street_commits[self.action]
+        call = max(self.street_commits) - self.street_commits[self.action]
         # min raise at least largest previous raise
         # if limit game min and max raise equal to raise size
-        if isinstance(self.raise_sizes[self.street], int):
-            max_raise = min_raise = self.raise_sizes[self.street] + call
+        raise_size = self.raise_sizes[self.street]
+        if isinstance(raise_size, int):
+            max_raise = min_raise = raise_size + call
         else:
             min_raise = max(self.big_blind, self.largest_raise + call)
-            if self.raise_sizes[self.street] == "pot":
+            if raise_size == "pot":
                 max_raise = self.pot + call * 2
-            elif self.raise_sizes[self.street] == float("inf"):
+            elif raise_size == float("inf"):
                 max_raise = self.stacks[self.action]
         # if maximum number of raises in street
         # was reached cap raise at 0
@@ -559,8 +576,9 @@ class Dealer:
     @staticmethod
     def _clean_bet(bet: int, call: int, min_raise: int, max_raise: int) -> int:
         # find closest bet size to actual bet
-        # pessimistic approach: in ties order is fold/check -> call -> raise
-        idx = np.argmin(np.absolute(np.array([0, call, min_raise, max_raise]) - bet))
+        # round down for tie, order is fold/check -> call -> raise
+        bet = max(0, bet)
+        idx = argmin([abs(value - bet) for value in [0, call, min_raise, max_raise]])
         # if call closest
         if idx == 1:
             return call
@@ -573,29 +591,40 @@ class Dealer:
     def _collect_multiple_bets(
         self, bets: List[int], street_commits: bool = True
     ) -> None:
-        bets_arr = np.roll(bets, self.action)
-        bets_arr = (self.stacks > 0) * self.active * bets_arr
+        # roll list to action
+        bets = bets[-self.action :] + bets[: -self.action]
+        bets = [
+            (stack > 0) * active * bet
+            for stack, active, bet in zip(self.stacks, self.active, bets)
+        ]
         if street_commits:
-            self.street_commits += bets_arr
-        self.pot_commit += bets_arr
-        self.pot += int(bets_arr.sum())
-        self.stacks -= bets_arr
+            self.street_commits = [
+                street_commit + bet
+                for street_commit, bet in zip(self.street_commits, bets)
+            ]
+        self.pot += sum(bets)
+        self.pot_commits = [
+            pot_commit + bet for pot_commit, bet in zip(self.pot_commits, bets)
+        ]
+        self.stacks = [stack - bet for stack, bet in zip(self.stacks, bets)]
 
     def _collect_bet(self, bet: int) -> None:
         # bet only as large as stack size
         bet = min(self.stacks[self.action], bet)
 
         self.pot += bet
-        self.pot_commit[self.action] += bet
+        self.pot_commits[self.action] += bet
         self.street_commits[self.action] += bet
         self.stacks[self.action] -= bet
 
     def _done(self) -> List[bool]:
-        if self.street >= self.num_streets or self.active.sum() <= 1:
+        if self.street >= self.num_streets or sum(self.active) <= 1:
             # end game
             return [True] * self.num_players
-        out: List[bool] = np.logical_not(self.active).astype(bool).tolist()
-        return out
+        done = [
+            not active or stack == 0 for active, stack in zip(self.active, self.stacks)
+        ]
+        return done
 
     def _observation(self, done: bool) -> ObservationDict:
         if done:
@@ -604,7 +633,7 @@ class Dealer:
             call, min_raise, max_raise = self._bet_sizes()
         observation: ObservationDict = {
             "action": self.action,
-            "active": self.active.tolist(),
+            "active": self.active,
             "button": self.button,
             "call": call,
             "community_cards": self.community_cards,
@@ -612,22 +641,35 @@ class Dealer:
             "max_raise": max_raise,
             "min_raise": min_raise,
             "pot": self.pot,
-            "stacks": self.stacks.tolist(),
-            "street_commits": self.street_commits.tolist(),
+            "stacks": self.stacks,
+            "street_commits": self.street_commits,
         }
         return observation
 
     def _payouts(self) -> List[int]:
         # players that have folded lose their bets
-        payouts = -1 * self.pot_commit * np.logical_not(self.active)
-        if self.active.sum() == 1:
-            payouts += self.active * (self.pot - self.pot_commit)
+        payouts = [
+            -1 * pot_commit * (not active)
+            for pot_commit, active in zip(self.pot_commits, self.active)
+        ]
+        # if only one player left give that player all chips
+        if sum(self.active) == 1:
+            payouts = [
+                payout + active * (self.pot - pot_commit)
+                for payout, active, pot_commit in zip(
+                    payouts, self.active, self.pot_commits
+                )
+            ]
+            return payouts
         # if last street played and still multiple players active
         elif self.street >= self.num_streets:
             payouts = self._eval_round()
-            payouts -= self.pot_commit
-        out: List[int] = payouts.astype(int).tolist()
-        return out
+            payouts = [
+                payout - pot_commit
+                for payout, pot_commit in zip(payouts, self.pot_commits)
+            ]
+            return payouts
+        return payouts
 
     def _eval_hands(
         self, hole_cards: List[List[poker.Card]], community_cards: List[poker.Card]
@@ -649,46 +691,50 @@ class Dealer:
     def _eval_round(self) -> List[int]:
         # grab array of hand strength and pot commits
         hand_strengths = self._eval_hands(self.hole_cards, self.community_cards)
-        hand_list = [
-            [player_idx, hand_strength, self.pot_commit[player_idx]]
+        hands: List[List[int]] = [
+            [player_idx, hand_strength, self.pot_commits[player_idx]]
             for player_idx, hand_strength in enumerate(hand_strengths)
         ]
-        hands = np.array(hand_list)
         # sort hands by hand strength and pot commits
-        hands = hands[np.lexsort([hands[:, 2], hands[:, 1]])]
+        hands = sorted(hands, key=operator.itemgetter(1, 2))
         pot = self.pot
         remainder = 0
-        payouts = np.zeros(self.num_players, dtype=int)
+        payouts = [0] * self.num_players
         worst_hand = self.evaluator.table.max_rank + 1
         # iterate over hand strength and
         # pot commits from smallest to largest
-        for idx, (_, strength, pot_commit) in enumerate(hands):
-            eligible = hands[:, 0][hands[:, 1] == strength].astype(int)
+        for hand_idx, (_, strength, pot_commit) in enumerate(hands):
+            eligible = [
+                player_idx
+                for player_idx, other_strength, _ in hands
+                if other_strength == strength
+            ]
             # cut can only be as large as lowest player commit amount
-            cut = np.clip(hands[:, 2], None, pot_commit)
-            split_pot = cut.sum()
+            cut = [min(hand[2], pot_commit) for hand in hands]
+            split_pot = sum(cut)
+            if not split_pot:
+                continue
             split = split_pot // len(eligible)
             remain = split_pot % len(eligible)
-            payouts[eligible] += split
+            for player_idx in eligible:
+                payouts[player_idx] += split
             remainder += remain
             # remove chips from players and pot
-            hands[:, 2] -= cut
+            for idx in range(len(cut)):
+                hands[idx][2] -= cut[idx]
             pot -= split_pot
             # remove player from next split pot
-            hands[idx, 1] = worst_hand
+            hands[hand_idx][1] = worst_hand
             if pot == 0:
                 break
         # give worst position player remainder chips
         if remainder:
             # worst player is first player after button involved in pot
-            involved_players = np.nonzero(payouts)[0]
-            button_shift = (involved_players <= self.button) * self.num_players
-            button_shifted_players = involved_players + button_shift
-            worst_idx = np.argmin(button_shifted_players)
-            worst_pos = involved_players[worst_idx]
-            payouts[worst_pos] += remainder
-        out: List[int] = payouts.astype(int).tolist()
-        return out
+            for player_idx in range(1, self.num_players + 1):
+                if payouts[player_idx + self.button % self.num_players]:
+                    payouts[player_idx] += remainder
+                    break
+        return payouts
 
     def _move_action(self) -> "Dealer":
         action = self.action
@@ -700,3 +746,13 @@ class Dealer:
                 self.street_option[action] = True
         self.action = action
         return self
+
+
+def argmin(values: List[int]) -> int:
+    minimum = float("inf")
+    minimum_idx = 0
+    for idx, value in enumerate(values):
+        if value < minimum:
+            minimum_idx = idx
+            minimum = value
+    return minimum_idx
