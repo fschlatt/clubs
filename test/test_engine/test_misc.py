@@ -55,6 +55,24 @@ def test_heads_up() -> None:
     assert obs["max_raise"] == 198
 
 
+def test_reset() -> None:
+    config = clubs.configs.NO_LIMIT_HOLDEM_SIX_PLAYER
+
+    dealer = clubs.poker.Dealer(**config)
+
+    obs = dealer.reset(reset_button=True, reset_stacks=True)
+    assert obs["action"] == 3
+
+    for idx in range(6):
+        while True:
+            *_, done = dealer.step(0)
+            if all(done):
+                break
+
+        obs = dealer.reset()
+        assert obs["action"] == (4 + idx) % 6
+
+
 def test_init() -> None:
 
     config = clubs.configs.NO_LIMIT_HOLDEM_TWO_PLAYER.copy()

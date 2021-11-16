@@ -285,7 +285,7 @@ class Dealer:
         if reset_button:
             self.button = 0
         else:
-            self.button = self.button + 1 % self.num_players
+            self.button = (self.button + 1) % self.num_players
 
         self.deck.shuffle()
         self.community_cards = self.deck.draw(self.num_community_cards[0])
