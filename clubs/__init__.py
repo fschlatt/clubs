@@ -1,4 +1,4 @@
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 __author__ = "Ferdinand Schlatt"
 __license__ = "GPL-3.0"
 __copyright__ = f"2021, {__author__}"
