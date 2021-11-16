@@ -145,9 +145,6 @@ def test_win_probabilities() -> None:
     dealer = clubs.poker.Dealer(**config)
     dealer.reset()
 
-    win_probs = dealer.win_probabilities(n=100)
-    assert pytest.approx(sum(win_probs), 1)
-
     dealer.step(-1)
     dealer.step(2)
     dealer.step(2)
@@ -158,6 +155,7 @@ def test_win_probabilities() -> None:
     dealer.step(1)
     dealer.step(0)
     win_probs = dealer.win_probabilities()
+    assert pytest.approx(sum(win_probs), 1)
     assert all(
         win_prob != 0 or not active
         for win_prob, active in zip(win_probs, dealer.active)

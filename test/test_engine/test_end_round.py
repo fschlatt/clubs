@@ -40,7 +40,8 @@ def test_all_all_in() -> None:
     _ = dealer.reset(reset_button=True, reset_stacks=True)
 
     bet = 200
-    for _ in range(6):
+    obs, payouts, done = dealer.step(bet)
+    for _ in range(5):
         obs, payouts, done = dealer.step(bet)
 
     assert all(done)
@@ -91,7 +92,8 @@ def test_too_few_players() -> None:
     _ = dealer.reset(reset_button=True, reset_stacks=True)
 
     bet = 200
-    for _ in range(6):
+    obs, payouts, done = dealer.step(bet)
+    for _ in range(5):
         obs, payouts, done = dealer.step(bet)
 
     assert obs

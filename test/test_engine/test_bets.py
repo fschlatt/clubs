@@ -3,7 +3,7 @@ import clubs
 
 def test_bet_cleaning() -> None:
     assert clubs.poker.Dealer._clean_bet(0, 2, 4, 200) == 0
-    assert clubs.poker.Dealer._clean_bet(-1, 2, 4, 200) == -0
+    assert clubs.poker.Dealer._clean_bet(-1, 2, 4, 200) == 0
     assert clubs.poker.Dealer._clean_bet(1, 0, 4, 200) == 0
     assert clubs.poker.Dealer._clean_bet(20, 2, 4, 200) == 20
     assert clubs.poker.Dealer._clean_bet(2000, 0, 4, 200) == 200
