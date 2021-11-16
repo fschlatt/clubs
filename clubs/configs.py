@@ -1,4 +1,10 @@
-from typing import List, Literal, Optional, TypedDict, Union
+import sys
+from typing import List, Optional, Union
+
+if sys.version_info >= (3, 8):
+    from typing import Literal, TypedDict  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import Literal, TypedDict
 
 
 class PokerConfig(TypedDict):

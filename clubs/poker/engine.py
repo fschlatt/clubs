@@ -1,7 +1,13 @@
 """Classes and functions for running poker games"""
 import itertools
 import operator
-from typing import Any, List, Literal, Optional, Tuple, Type, TypedDict, Union
+import sys
+from typing import Any, List, Optional, Tuple, Type, Union
+
+if sys.version_info >= (3, 8):
+    from typing import Literal, TypedDict
+else:
+    from typing_extensions import TypedDict, Literal
 
 from clubs import error, poker, render
 
