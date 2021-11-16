@@ -1,4 +1,4 @@
-.. clubs documentation master file, created by
+.. clubs documentation main file, created by
    sphinx-quickstart on Sat Feb 13 16:23:30 2021.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.

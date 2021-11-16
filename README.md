@@ -8,7 +8,7 @@
 
 [![PyPI Status](https://badge.fury.io/py/clubs.svg)](https://badge.fury.io/py/clubs)
 [![PyPI Status](https://pepy.tech/badge/clubs)](https://pepy.tech/project/clubs)
-[![codecov](https://codecov.io/gh/fschlatt/clubs/branch/master/graph/badge.svg)](https://codecov.io/gh/fschlatt/clubs)
+[![codecov](https://codecov.io/gh/fschlatt/clubs/branch/main/graph/badge.svg)](https://codecov.io/gh/fschlatt/clubs)
 [![CodeFactor](https://www.codefactor.io/repository/github/fschlatt/clubs/badge)](https://www.codefactor.io/repository/github/fschlatt/clubs)
 [![Documentation Status](https://readthedocs.org/projects/clubs/badge/?version=latest)](https://clubs.readthedocs.io/en/latest/?badge=latest)
 
