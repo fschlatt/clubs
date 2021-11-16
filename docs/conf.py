@@ -15,12 +15,14 @@ import sys
 
 sys.path.insert(0, os.path.abspath(".."))
 
+import clubs  # noqa: E402
 
 # -- Project information -----------------------------------------------------
 
-project = "clubs"
-copyright = "2021, Ferdinand Schlatt"
-author = "Ferdinand Schlatt"
+project = clubs.__name__
+copyright = clubs.__copyright__
+author = clubs.__author__
+version = clubs.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -56,7 +58,10 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "alabaster"
+html_theme = "nature"
+
+html_logo = "../clubs/render/resources/static/images/black_red_logo.svg"
+html_favicon = "../clubs/render/resources/static/images/black_red_logo.svg"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -70,3 +75,16 @@ html_static_path = ["_static"]
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+
+autodoc_default_options = {
+    "members": True,
+    "methods": True,
+    "special-members": "__call__",
+    "exclude-members": "_abc_impl",
+    "show-inheritance": True,
+}
+
+
+def setup(app):
+    app.add_css_file("css/style.css")

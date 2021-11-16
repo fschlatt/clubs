@@ -1,19 +1,21 @@
-clubs.poker package
-===================
+clubs.poker
+============
 
-Submodules
-----------
+.. .. toctree::
+..    :maxdepth: 4
 
-clubs.poker.card module
------------------------
+..    clubs.poker
+
+Card
+----
 
 .. automodule:: clubs.poker.card
    :members:
    :undoc-members:
    :show-inheritance:
 
-clubs.poker.engine module
--------------------------
+Engine
+------
 
 .. automodule:: clubs.poker.engine
    :members:

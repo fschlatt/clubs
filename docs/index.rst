@@ -3,14 +3,25 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to clubs's documentation!
-=================================
+.. poker: card, deck
+.. dealer
+.. lookup table, evaluator
+.. render
+
+Clubs documentation!
+====================
+
+
+Engine
+------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
+   :name: start
    :caption: Contents:
 
-   clubs
+   clubs/poker/card
+   clubs.poker
 
 
 Indices and tables
