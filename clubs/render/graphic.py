@@ -107,6 +107,7 @@ class GraphicViewer(viewer.PokerViewer):
         monkey.patch_all()
         import flask
         import flask_socketio
+        import markupsafe
 
         config: Dict[str, Any] = {}
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -124,7 +125,7 @@ class GraphicViewer(viewer.PokerViewer):
         @app.route("/")
         def index():  # type: ignore
             svg = str(self.svg_poker.base_svg)
-            return flask.render_template("index.html", svg=flask.Markup(svg))
+            return flask.render_template("index.html", svg=markupsafe.Markup(svg))
 
         def listener() -> None:
             nonlocal config

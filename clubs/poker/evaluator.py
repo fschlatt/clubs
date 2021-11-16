@@ -3,7 +3,7 @@ import functools
 import itertools
 import operator
 from timeit import default_timer as timer
-from typing import Dict, Iterator, List, Optional, Tuple
+from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 
 from clubs import error
 
@@ -576,9 +576,9 @@ class LookupTable:
             # if different multiples (e.g. full house) order of
             # multiples is important
             if len(set(multiples)) > 1:
-                multiple_combinations = itertools.permutations(
-                    backwards_ranks, len(multiples)
-                )
+                multiple_combinations: Iterable[
+                    Tuple[int, ...]
+                ] = itertools.permutations(backwards_ranks, len(multiples))
             # if same multiples (e.g. two pair) order of multiples
             # is unimportant
             else:
