@@ -479,16 +479,9 @@ class Dealer:
 
         self.viewer.render(config, sleep)
 
-    def win_probabilities(self, n: int = 10000) -> List[float]:
-        """Computes win probabilities for each player. If the possible remaining
-        community card combinations are below 1000, the combinations are exhaustively
-        checked, otherwise, n random samples are taken and averaged to compute an
-        estimate of the win probabilities.
-
-        Parameters
-        ----------
-        n : int, optional
-            max number of iterations to approximate win probabilities, by default 10000
+    def win_probabilities(self) -> List[float]:
+        """Computes win probabilities for each player by exhaustively checking every
+        possible combination of remaining community cards.
 
         Returns
         -------
@@ -502,25 +495,21 @@ class Dealer:
         num_comm_combinations = poker.evaluator._ncr(
             len(self.deck.cards), num_additional_comm_cards
         )
-        if num_comm_combinations < 1000:
-            comm_combinations: Iterator[
-                Tuple[poker.Card, ...]
-            ] = itertools.combinations(self.deck.cards, num_additional_comm_cards)
-            n = num_comm_combinations
-        else:
-            comm_combinations = (
-                np.random.choice(
-                    self.deck.cards, num_additional_comm_cards, replace=False
+        comm_combinations = itertools.combinations(
+            self.deck.cards, num_additional_comm_cards
                 )
-                for _ in range(n)
-            )
+        hands_won = {player_idx: 0 for player_idx in range(self.num_players)}
         for additional_comm_cards in comm_combinations:
             community_cards = self.community_cards + list(additional_comm_cards)
-            hand_strengths.append(self._eval_hands(self.hole_cards, community_cards))
-        best_hand = np.min(hand_strengths, axis=1)
-        hand_won_bool = best_hand.reshape(n, 1) == np.array(hand_strengths)
-        hands_won = hand_won_bool.sum(axis=0)
-        win_probs: List[float] = (hands_won / hands_won.sum()).tolist()
+            hand_strengths = self._eval_hands(self.hole_cards, community_cards)
+            best_hand = min(hand_strengths)
+            for player_idx, hand_strength in enumerate(hand_strengths):
+                if hand_strength == best_hand:
+                    hands_won[player_idx] += 1
+        win_probs = [
+            hands_won[player_idx] / num_comm_combinations
+            for player_idx in range(self.num_players)
+        ]
         return win_probs
 
     def _all_agreed(self) -> bool:
