@@ -24,6 +24,14 @@ PRETTY_SUITS: Dict[int, str] = {
     8: chr(9827),
 }
 
+CHAR_RANKS = 'A23456789TJCQK'  # https://en.wikipedia.org/wiki/Playing_cards_in_Unicode
+CHARS = {
+    '♠': {k: chr(0x1f0a1 + i) for i, k in enumerate(CHAR_RANKS)},
+    '♥': {k: chr(0x1f0b1 + i) for i, k in enumerate(CHAR_RANKS)},
+    '♦': {k: chr(0x1f0c1 + i) for i, k in enumerate(CHAR_RANKS)},
+    '♣': {k: chr(0x1f0d1 + i) for i, k in enumerate(CHAR_RANKS)},
+}
+
 
 class Card:
     """Cards are represented as 32-bit integers. Most of the bits are used
@@ -94,7 +102,7 @@ class Card:
         return self._int
 
     def __str__(self) -> str:
-        return f"{self.rank}{self.suit}"
+        return CHARS[self.suit][self.rank]
 
     def __repr__(self) -> str:
         return f"Card ({id(self)}): {str(self)}"
