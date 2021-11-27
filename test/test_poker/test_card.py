@@ -83,3 +83,6 @@ def test_str_repr() -> None:
 
     deck = poker.Deck(4, 13)
     assert repr(deck) == f"Deck ({id(deck)}): {str(deck)}"
+
+    deck = poker.Deck(4, 13, unicode=True)
+    assert repr(deck) == f"Deck ({id(deck)}): {str(deck)}"
