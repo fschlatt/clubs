@@ -64,7 +64,7 @@ class Card:
     >>> card = Card('ad')
     """
 
-    def __init__(self, string: str) -> None:
+    def __init__(self, string: str, unicode: bool = False) -> None:
 
         rank_char = string[0].upper()
         suit_char = string[1].upper()
@@ -97,12 +97,15 @@ class Card:
         self._bin_str: str = f"{self._int:b}"
         self.suit = PRETTY_SUITS[suit_int]
         self.rank = STR_RANKS[rank_int]
+        self.unicode: bool = unicode
 
     def __int__(self) -> int:
         return self._int
 
     def __str__(self) -> str:
-        return CHARS[self.suit][self.rank]
+        if self.unicode:
+            return CHARS[self.suit][self.rank]
+        return f"{self.rank}{self.suit}"
 
     def __repr__(self) -> str:
         return f"Card ({id(self)}): {str(self)}"
