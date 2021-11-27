@@ -153,7 +153,7 @@ class Deck:
         number of ranks to use in deck
     """
 
-    def __init__(self, num_suits: int, num_ranks: int) -> None:
+    def __init__(self, num_suits: int, num_ranks: int, unicode: bool = False) -> None:
         if num_ranks < 1 or num_ranks > 13:
             raise error.InvalidRankError(
                 f"Invalid number of suits, expected number of suits "
@@ -171,7 +171,7 @@ class Deck:
         suits = list(CHAR_SUIT_TO_INT_SUIT.keys())[:num_suits]
         for rank in ranks:
             for suit in suits:
-                self.full_deck.append(Card(rank + suit))
+                self.full_deck.append(Card(rank + suit, unicode))
         self._tricked = False
         self._top_idcs: List[int] = []
         self._bottom_idcs: List[int] = []
