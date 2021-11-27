@@ -49,13 +49,14 @@ class Card:
         4) b = bit turned on depending on rank of card
         5) x = unused
 
-
     Parameters
     ----------
     string : str
         card string of format '{rank}{suit}' where rank is from
         [2-9, T/t, J/j, Q/q, K/k, A/a] and suit is from
         [S/s, H/h, D/d, C/c]
+    unicode : bool, default False
+        use unicode characters for string representation of a card
 
     Examples
     ------
