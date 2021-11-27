@@ -98,13 +98,13 @@ class Card:
         self._bin_str: str = f"{self._int:b}"
         self.suit = PRETTY_SUITS[suit_int]
         self.rank = STR_RANKS[rank_int]
-        self.unicode: bool = unicode
+        self._unicode: bool = unicode
 
     def __int__(self) -> int:
         return self._int
 
     def __str__(self) -> str:
-        if self.unicode:
+        if self._unicode:
             return UNICODE_CHARS[self.suit][self.rank]
         return f"{self.rank}{self.suit}"
 
