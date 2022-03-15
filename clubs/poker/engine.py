@@ -7,7 +7,7 @@ from typing import Any, List, Optional, Tuple, Type, Union
 if sys.version_info >= (3, 8):
     from typing import Literal, TypedDict
 else:
-    from typing_extensions import TypedDict, Literal
+    from typing_extensions import Literal, TypedDict
 
 from clubs import error, poker, render
 
