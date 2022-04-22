@@ -77,9 +77,25 @@ def test_ops() -> None:
         assert card == 0
 
 
-def test_str_repr() -> None:
+def test_deck_str_repr() -> None:
+    deck = poker.Deck(4, 13)
+    assert repr(deck) == f"Deck ({id(deck)}): {str(deck)}"
+
+    deck = poker.Deck(4, 13, unicode=True)
+    assert repr(deck) == f"Deck ({id(deck)}): {str(deck)}"
+
+
+def test_card_str_repr() -> None:
     card = poker.Card("Ac")
     assert repr(card) == f"Card ({id(card)}): {card}"
 
-    deck = poker.Deck(4, 13)
-    assert repr(deck) == f"Deck ({id(deck)}): {str(deck)}"
+    deck = poker.Deck(4, 13, unicode=True)
+
+    full_deck = [
+        '🂢', '🂲', '🃂', '🃒', '🂣', '🂳', '🃃', '🃓', '🂤', '🂴', '🃄', '🃔', '🂥', '🂵', '🃅', '🃕',
+        '🂦', '🂶', '🃆', '🃖', '🂧', '🂷', '🃇', '🃗', '🂨', '🂸', '🃈', '🃘', '🂩', '🂹', '🃉', '🃙',
+        '🂪', '🂺', '🃊', '🃚', '🂫', '🂻', '🃋', '🃛', '🂭', '🂽', '🃍', '🃝', '🂮', '🂾', '🃎', '🃞',
+        '🂡', '🂱', '🃁', '🃑'
+    ]
+
+    assert [str(c) for c in deck.full_deck] == full_deck

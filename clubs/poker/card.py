@@ -24,6 +24,14 @@ PRETTY_SUITS: Dict[int, str] = {
     8: chr(9827),
 }
 
+UNICODE_RANKS = 'A23456789TJCQK'  # https://en.wikipedia.org/wiki/Playing_cards_in_Unicode
+UNICODE_CHARS = {
+    '♠': {k: chr(0x1f0a1 + i) for i, k in enumerate(UNICODE_RANKS)},
+    '♥': {k: chr(0x1f0b1 + i) for i, k in enumerate(UNICODE_RANKS)},
+    '♦': {k: chr(0x1f0c1 + i) for i, k in enumerate(UNICODE_RANKS)},
+    '♣': {k: chr(0x1f0d1 + i) for i, k in enumerate(UNICODE_RANKS)},
+}
+
 
 class Card:
     """Cards are represented as 32-bit integers. Most of the bits are used
@@ -41,13 +49,14 @@ class Card:
         4) b = bit turned on depending on rank of card
         5) x = unused
 
-
     Parameters
     ----------
     string : str
         card string of format '{rank}{suit}' where rank is from
         [2-9, T/t, J/j, Q/q, K/k, A/a] and suit is from
         [S/s, H/h, D/d, C/c]
+    unicode : bool, default False
+        use unicode characters for string representation of a card
 
     Examples
     ------
@@ -56,7 +65,7 @@ class Card:
     >>> card = Card('ad')
     """
 
-    def __init__(self, string: str) -> None:
+    def __init__(self, string: str, unicode: bool = False) -> None:
 
         rank_char = string[0].upper()
         suit_char = string[1].upper()
@@ -89,11 +98,14 @@ class Card:
         self._bin_str: str = f"{self._int:b}"
         self.suit = PRETTY_SUITS[suit_int]
         self.rank = STR_RANKS[rank_int]
+        self._unicode: bool = unicode
 
     def __int__(self) -> int:
         return self._int
 
     def __str__(self) -> str:
+        if self._unicode:
+            return UNICODE_CHARS[self.suit][self.rank]
         return f"{self.rank}{self.suit}"
 
     def __repr__(self) -> str:
@@ -141,7 +153,7 @@ class Deck:
         number of ranks to use in deck
     """
 
-    def __init__(self, num_suits: int, num_ranks: int) -> None:
+    def __init__(self, num_suits: int, num_ranks: int, unicode: bool = False) -> None:
         if num_ranks < 1 or num_ranks > 13:
             raise error.InvalidRankError(
                 f"Invalid number of suits, expected number of suits "
@@ -159,7 +171,7 @@ class Deck:
         suits = list(CHAR_SUIT_TO_INT_SUIT.keys())[:num_suits]
         for rank in ranks:
             for suit in suits:
-                self.full_deck.append(Card(rank + suit))
+                self.full_deck.append(Card(rank + suit, unicode))
         self._tricked = False
         self._top_idcs: List[int] = []
         self._bottom_idcs: List[int] = []
